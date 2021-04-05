@@ -5,13 +5,14 @@ use glutin::event_loop::{ControlFlow, EventLoop};
 
 fn main() {
     let events_loop = EventLoop::new();
-    let renderer = engine::RendererBuilder::new()
+    let mut renderer = engine::RendererBuilder::new()
         .title("mod1")
         .size((1280, 720))
         .resizable(false)
         .build(&events_loop);
 
-    let (shader_program, vao) = engine::shader_program::compile("triangle");
+    renderer.load_shader("triangle");
+    let triangle = engine::Mesh::new("triangle");
 
     events_loop.run(move |event, _target, flow| {
         *flow = ControlFlow::Wait;
@@ -25,7 +26,7 @@ fn main() {
             },
             Event::RedrawRequested(_) => {
                 renderer.clear();
-                renderer.draw(shader_program, vao);
+                renderer.draw(&triangle);
                 renderer.swap();
             }
             _ => {}

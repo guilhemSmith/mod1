@@ -1,4 +1,7 @@
-mod renderer;
-pub mod shader_program;
+mod mesh;
+mod render;
+mod shader_program;
 
-pub use renderer::{Renderer, RendererBuilder};
+pub use mesh::Mesh;
+pub use render::{Renderable, Renderer, RendererBuilder};
+pub use shader_program::ShaderProgram;

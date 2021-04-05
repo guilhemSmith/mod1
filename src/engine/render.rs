@@ -1,13 +1,20 @@
+use super::ShaderProgram;
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
 	window::{Window, WindowBuilder},
 	ContextBuilder, ContextWrapper, PossiblyCurrent,
 };
+use std::collections::HashMap;
 
 const DEFAULT_WIDTH: u32 = 800;
 const DEFAULT_HEIGHT: u32 = 600;
 const DEFAULT_TITLE: String = String::new();
+
+pub trait Renderable {
+	fn shader_name(&self) -> &String;
+	fn draw(&self);
+}
 
 pub struct RendererBuilder {
 	title: String,
@@ -65,12 +72,16 @@ impl RendererBuilder {
 			.unwrap();
 		let gl_window = unsafe { gl_window.make_current().unwrap() };
 		gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-		Renderer { gl_window }
+		Renderer {
+			gl_window,
+			shaders: HashMap::new(),
+		}
 	}
 }
 
 pub struct Renderer {
 	gl_window: ContextWrapper<PossiblyCurrent, Window>,
+	shaders: HashMap<String, ShaderProgram>,
 }
 
 impl Renderer {
@@ -84,15 +95,18 @@ impl Renderer {
 	pub fn swap(&self) {
 		self.gl_window.swap_buffers().unwrap();
 	}
-	pub fn draw(&self, shader_program: u32, vao: u32) {
-		unsafe {
-			gl::UseProgram(shader_program);
-			gl::BindVertexArray(vao);
-			gl::DrawArrays(gl::TRIANGLES, 0, 3);
-		}
+	pub fn draw(&self, obj: &dyn Renderable) {
+		let shader_program = self.shaders.get(obj.shader_name()).unwrap();
+		shader_program.use_program();
+		obj.draw();
 	}
 
 	pub fn resize(&self, size: PhysicalSize<u32>) {
 		self.gl_window.resize(size)
+	}
+
+	pub fn load_shader(&mut self, name: &str) {
+		self.shaders
+			.insert(String::from(name), ShaderProgram::new(name));
 	}
 }
