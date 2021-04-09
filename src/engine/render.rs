@@ -102,7 +102,10 @@ impl Renderer {
 	}
 
 	pub fn resize(&self, size: PhysicalSize<u32>) {
-		self.gl_window.resize(size)
+		self.gl_window.resize(size);
+		unsafe {
+			gl::Viewport(0, 0, size.width as i32, size.height as i32);
+		}
 	}
 
 	pub fn load_shader(&mut self, name: &str) {
