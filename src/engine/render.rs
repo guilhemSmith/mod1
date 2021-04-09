@@ -1,4 +1,5 @@
 use super::ShaderProgram;
+use gl::types::*;
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -13,7 +14,7 @@ const DEFAULT_TITLE: String = String::new();
 
 pub trait Renderable {
 	fn shader_name(&self) -> &String;
-	fn draw(&self);
+	fn draw(&self, shader_program: &ShaderProgram);
 }
 
 pub struct RendererBuilder {
@@ -98,7 +99,7 @@ impl Renderer {
 	pub fn draw(&self, obj: &dyn Renderable) {
 		let shader_program = self.shaders.get(obj.shader_name()).unwrap();
 		shader_program.use_program();
-		obj.draw();
+		obj.draw(shader_program);
 	}
 
 	pub fn resize(&self, size: PhysicalSize<u32>) {

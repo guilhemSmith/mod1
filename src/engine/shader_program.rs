@@ -41,6 +41,9 @@ impl ShaderProgram {
 			gl::UseProgram(self.id);
 		}
 	}
+	pub fn id(&self) -> u32 {
+		self.id
+	}
 }
 
 fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, String> {

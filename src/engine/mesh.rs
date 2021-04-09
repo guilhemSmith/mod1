@@ -1,12 +1,15 @@
 use super::Renderable;
+use super::ShaderProgram;
 use gl::types::*;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Mesh {
 	vao: u32,
 	shader_name: String,
+	start: SystemTime,
 }
 
 impl Mesh {
@@ -54,6 +57,7 @@ impl Mesh {
 		Self {
 			vao,
 			shader_name: String::from(shader_name),
+			start: SystemTime::now(),
 		}
 	}
 }
@@ -63,8 +67,29 @@ impl Renderable for Mesh {
 		&self.shader_name
 	}
 
-	fn draw(&self) {
+	fn draw(&self, shader_program: &ShaderProgram) {
+		let trans = glam::Mat4::from_scale_rotation_translation(
+			glam::Vec3::new(0.5, 0.5, 0.5),
+			glam::Quat::from_axis_angle(
+				glam::Vec3::Z,
+				f32::to_radians(
+					SystemTime::now()
+						.duration_since(self.start)
+						.unwrap()
+						.as_millis() as f32 * 0.05,
+				),
+			),
+			glam::Vec3::ZERO,
+		);
 		unsafe {
+			let transform_loc = gl::GetUniformLocation(
+				shader_program.id(),
+				std::ffi::CString::new("transform")
+					.unwrap()
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, trans.as_ref().as_ptr());
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, 3);
 		}
