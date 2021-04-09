@@ -4,7 +4,7 @@ use gl::types::*;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 
 pub struct Mesh {
 	vao: u32,

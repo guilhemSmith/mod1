@@ -30,9 +30,9 @@ fn main() {
             Event::RedrawRequested(_) => {}
             _ => {}
         }
-        let elapsed = now.duration_since(last_draw).as_millis();
-        if elapsed > 16 {
-            println!("{}", 1000 / elapsed);
+        let elapsed = now.duration_since(last_draw).as_micros();
+        if elapsed >= 8333 {
+            println!("{}", 1000000 / elapsed);
             renderer.clear();
             renderer.draw(&triangle);
             renderer.swap();
