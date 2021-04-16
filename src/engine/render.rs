@@ -1,5 +1,4 @@
 use super::ShaderProgram;
-use gl::types::*;
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -73,6 +72,9 @@ impl RendererBuilder {
 			.unwrap();
 		let gl_window = unsafe { gl_window.make_current().unwrap() };
 		gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+		unsafe {
+			gl::Enable(gl::DEPTH_TEST);
+		}
 		Renderer {
 			gl_window,
 			shaders: HashMap::new(),
@@ -89,7 +91,7 @@ impl Renderer {
 	pub fn clear(&self) {
 		unsafe {
 			gl::ClearColor(0.0, 0.0, 0.0, 1.0);
-			gl::Clear(gl::COLOR_BUFFER_BIT);
+			gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 		}
 	}
 

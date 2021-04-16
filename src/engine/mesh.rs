@@ -14,10 +14,13 @@ pub struct Mesh {
 
 impl Mesh {
 	pub fn new(shader_name: &str) -> Self {
-		let vertices: [f32; 18] = [
-			-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, // right
-			0.5, -0.5, 0.0, 0.0, 1.0, 0.0, // top
-			0.0, 0.5, 0.0, 0.0, 0.0, 1.0,
+		let vertices: [f32; 36] = [
+			-1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot left
+			1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot right
+			1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top right
+			1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top right
+			-1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top left
+			-1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot left
 		];
 
 		let (mut vbo, mut vao) = (0, 0);
@@ -68,30 +71,51 @@ impl Renderable for Mesh {
 	}
 
 	fn draw(&self, shader_program: &ShaderProgram) {
-		let trans = glam::Mat4::from_scale_rotation_translation(
+		let pos = glam::Vec3::ZERO;
+		let model = glam::Mat4::from_scale_rotation_translation(
 			glam::Vec3::new(0.5, 0.5, 0.5),
-			glam::Quat::from_axis_angle(
-				glam::Vec3::Z,
-				f32::to_radians(
-					SystemTime::now()
-						.duration_since(self.start)
-						.unwrap()
-						.as_millis() as f32 * 0.05,
-				),
-			),
-			glam::Vec3::ZERO,
+			glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
+			pos,
 		);
+		let cam_speed = 3.0;
+		let pitch: f32 = 45.0;
+		let yaw: f32 = (SystemTime::now()
+			.duration_since(self.start)
+			.unwrap()
+			.as_millis() as f32
+			* cam_speed)
+			.to_radians();
+		let dist = 2.0;
+		let cam_pos = glam::Vec3::new(
+			yaw.to_radians().cos() * pitch.to_radians().cos(),
+			pitch.to_radians().sin(),
+			yaw.to_radians().sin() * pitch.to_radians().cos(),
+		)
+		.normalize() * dist;
+		let view = glam::Mat4::look_at_rh(cam_pos, pos, glam::Vec3::Y);
+		let projection =
+			glam::Mat4::perspective_rh_gl(f32::to_radians(90.0), 16.0 / 9.0, 0.1, 100.0);
 		unsafe {
-			let transform_loc = gl::GetUniformLocation(
+			let uniform_loc = gl::GetUniformLocation(
 				shader_program.id(),
-				std::ffi::CString::new("transform")
+				std::ffi::CString::new("model").unwrap().as_c_str().as_ptr(),
+			);
+			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, model.as_ref().as_ptr());
+			let uniform_loc = gl::GetUniformLocation(
+				shader_program.id(),
+				std::ffi::CString::new("view").unwrap().as_c_str().as_ptr(),
+			);
+			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, view.as_ref().as_ptr());
+			let uniform_loc = gl::GetUniformLocation(
+				shader_program.id(),
+				std::ffi::CString::new("projection")
 					.unwrap()
 					.as_c_str()
 					.as_ptr(),
 			);
-			gl::UniformMatrix4fv(transform_loc, 1, gl::FALSE, trans.as_ref().as_ptr());
+			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
 			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(gl::TRIANGLES, 0, 3);
+			gl::DrawArrays(gl::TRIANGLES, 0, 6);
 		}
 	}
 }
