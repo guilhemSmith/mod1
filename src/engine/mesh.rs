@@ -1,5 +1,7 @@
-use super::{Camera, Renderable, ShaderProgram};
+use super::{Camera, EngineError, Renderable, ShaderProgram};
+use crate::map_engine_error;
 use gl::types::*;
+use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
@@ -66,7 +68,7 @@ impl Renderable for Mesh {
 		&self.shader_name
 	}
 
-	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) {
+	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) -> Result<(), EngineError> {
 		let pos = glam::Vec3::ZERO;
 		let model = glam::Mat4::from_scale_rotation_translation(
 			glam::Vec3::new(0.5, 0.5, 0.5),
@@ -78,18 +80,21 @@ impl Renderable for Mesh {
 		unsafe {
 			let uniform_loc = gl::GetUniformLocation(
 				shader_program.id(),
-				std::ffi::CString::new("model").unwrap().as_c_str().as_ptr(),
+				map_engine_error!(CString::new("model"), BadCString)?
+					.as_c_str()
+					.as_ptr(),
 			);
 			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, model.as_ref().as_ptr());
 			let uniform_loc = gl::GetUniformLocation(
 				shader_program.id(),
-				std::ffi::CString::new("view").unwrap().as_c_str().as_ptr(),
+				map_engine_error!(CString::new("view"), BadCString)?
+					.as_c_str()
+					.as_ptr(),
 			);
 			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, view.as_ref().as_ptr());
 			let uniform_loc = gl::GetUniformLocation(
 				shader_program.id(),
-				std::ffi::CString::new("projection")
-					.unwrap()
+				map_engine_error!(CString::new("projection"), BadCString)?
 					.as_c_str()
 					.as_ptr(),
 			);
@@ -97,5 +102,6 @@ impl Renderable for Mesh {
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, 6);
 		}
+		Ok(())
 	}
 }

@@ -1,6 +1,9 @@
 use gl::types::*;
 
+use super::EngineError;
+use crate::{engine_error, map_engine_error};
 use std::ffi::CString;
+use std::fs::read;
 use std::ptr;
 use std::str;
 
@@ -30,11 +33,11 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-	pub fn new(name: &str) -> Self {
-		let vertex_shader = compile_shader(name, ShaderType::Vertex).unwrap();
-		let fragment_shader = compile_shader(name, ShaderType::Fragment).unwrap();
-		let shader_program = link_shaders(vertex_shader, fragment_shader).unwrap();
-		ShaderProgram { id: shader_program }
+	pub fn new(name: &str) -> Result<Self, EngineError> {
+		let vertex_shader = compile_shader(name, ShaderType::Vertex)?;
+		let fragment_shader = compile_shader(name, ShaderType::Fragment)?;
+		let shader_program = link_shaders(vertex_shader, fragment_shader)?;
+		Ok(ShaderProgram { id: shader_program })
 	}
 	pub fn use_program(&self) {
 		unsafe {
@@ -46,9 +49,11 @@ impl ShaderProgram {
 	}
 }
 
-fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, String> {
-	let source = std::fs::read(&format!("shaders/{}/{}.glsl", name, shader_type.str())).unwrap();
-	let c_str = CString::new(source).unwrap();
+fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, EngineError> {
+	let filename = format!("shaders/{}/{}.glsl", name, shader_type.str());
+	let err_msg = format!("Failed to read file '{}'", filename);
+	let source = map_engine_error!(read(&filename), FileError, err_msg)?;
+	let c_str = map_engine_error!(CString::new(source), BadCString)?;
 	unsafe {
 		let mut success = i32::from(gl::FALSE);
 		let mut info_log = Vec::with_capacity(512);
@@ -66,16 +71,17 @@ fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, String> {
 				ptr::null_mut(),
 				info_log.as_mut_ptr() as *mut GLchar,
 			);
-			Err(format!(
+			let err_msg = format!(
 				"ERROR::SHADER::{}::COMPILATION_FAILED\n{}",
 				shader_type.str().to_uppercase(),
 				str::from_utf8(&info_log).unwrap()
-			))
+			);
+			Err(engine_error!(ShaderFail, err_msg))
 		}
 	}
 }
 
-fn link_shaders(vertex_shader: u32, fragment_shader: u32) -> Result<u32, String> {
+fn link_shaders(vertex_shader: u32, fragment_shader: u32) -> Result<u32, EngineError> {
 	unsafe {
 		let shader_program = gl::CreateProgram();
 		gl::AttachShader(shader_program, vertex_shader);
@@ -96,10 +102,11 @@ fn link_shaders(vertex_shader: u32, fragment_shader: u32) -> Result<u32, String>
 				ptr::null_mut(),
 				info_log.as_mut_ptr() as *mut GLchar,
 			);
-			Err(format!(
+			let err_msg = format!(
 				"ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}",
 				str::from_utf8(&info_log).unwrap()
-			))
+			);
+			Err(engine_error!(ShaderFail, err_msg))
 		}
 	}
 }

@@ -1,4 +1,5 @@
-use super::{Camera, EntityStore, ShaderProgram};
+use super::{Camera, EngineError, EntityStore, ShaderProgram};
+use crate::map_engine_error;
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -13,7 +14,7 @@ const DEFAULT_TITLE: String = String::new();
 
 pub trait Renderable {
 	fn shader_name(&self) -> &String;
-	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera);
+	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) -> Result<(), EngineError>;
 }
 
 pub struct RendererBuilder {
@@ -61,25 +62,27 @@ impl RendererBuilder {
 		}
 	}
 
-	pub fn build(self, event_loop: &EventLoop<()>) -> Renderer {
+	pub fn build(self, event_loop: &EventLoop<()>) -> Result<Renderer, EngineError> {
 		let window = WindowBuilder::new()
 			.with_title(self.title)
 			.with_inner_size(self.size)
 			.with_resizable(self.resizable);
-		let gl_window = ContextBuilder::new()
+		let err_msg = String::from("Failed to build gl window wrapper");
+		let res = ContextBuilder::new()
 			.with_vsync(true)
-			.build_windowed(window, event_loop)
-			.unwrap();
-		let gl_window = unsafe { gl_window.make_current().unwrap() };
+			.build_windowed(window, event_loop);
+		let gl_window = map_engine_error!(res, GLError, err_msg)?;
+		let err_msg = String::from("Failed to make window current");
+		let gl_window = unsafe { map_engine_error!(gl_window.make_current(), GLError, err_msg)? };
 		gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 		unsafe {
 			gl::Enable(gl::DEPTH_TEST);
 		}
-		Renderer {
+		Ok(Renderer {
 			gl_window,
 			shaders: HashMap::new(),
 			cam_key: None,
-		}
+		})
 	}
 }
 
@@ -101,8 +104,9 @@ impl Renderer {
 		}
 	}
 
-	pub fn swap(&self) {
-		self.gl_window.swap_buffers().unwrap();
+	pub fn swap(&self) -> Result<(), EngineError> {
+		let err_msg = String::from("Failed to swap GL buffer");
+		map_engine_error!(self.gl_window.swap_buffers(), GLError, err_msg)
 	}
 
 	pub fn draw(&self, obj: &dyn Renderable, entities: &mut EntityStore) {
@@ -111,10 +115,10 @@ impl Renderer {
 				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
 					if let Some(shader_program) = self.shaders.get(obj.shader_name()) {
 						shader_program.use_program();
-						obj.draw(shader_program, camera);
+						if let Err(err) = obj.draw(shader_program, camera) {
+							println!("{}", err);
+						};
 					}
-				} else {
-					println!("no cam: {:?}", camera_entity);
 				}
 			}
 		}
@@ -128,8 +132,14 @@ impl Renderer {
 	}
 
 	pub fn load_shader(&mut self, name: &str) {
-		self.shaders
-			.insert(String::from(name), ShaderProgram::new(name));
+		match ShaderProgram::new(name) {
+			Ok(shader) => {
+				self.shaders.insert(String::from(name), shader);
+			}
+			Err(err) => {
+				println!("{}", err);
+			}
+		}
 	}
 
 	pub fn window(&self) -> &Window {
