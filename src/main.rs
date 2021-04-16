@@ -7,5 +7,6 @@ fn main() {
         .size((1280, 720))
         .resizable(true)
         .build(&event_loop);
-    event_loop.run(engine::core_loop(renderer));
+    let entities = engine::EntityStore::new();
+    event_loop.run(engine::core_loop(renderer, entities));
 }

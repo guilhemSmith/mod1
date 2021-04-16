@@ -1,8 +1,10 @@
+mod entities;
 mod input;
 mod mesh;
 mod render;
 mod shader_program;
 
+pub use entities::{Entity, EntityStore};
 pub use input::Inputs;
 pub use mesh::Mesh;
 pub use render::{Renderable, Renderer, RendererBuilder};
@@ -16,6 +18,7 @@ use std::time;
 
 pub fn core_loop(
 	mut renderer: Renderer,
+	mut entities: EntityStore,
 ) -> Box<dyn FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow)> {
 	let mut inputs = Inputs::new();
 	let mut last_draw = time::Instant::now();
@@ -50,5 +53,7 @@ pub fn core_loop(
 			}
 			_ => {}
 		}
+		entities.update(delta, &inputs);
+		entities.exec_clear();
 	})
 }
