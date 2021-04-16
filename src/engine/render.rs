@@ -98,6 +98,7 @@ impl Renderer {
 	pub fn swap(&self) {
 		self.gl_window.swap_buffers().unwrap();
 	}
+
 	pub fn draw(&self, obj: &dyn Renderable) {
 		let shader_program = self.shaders.get(obj.shader_name()).unwrap();
 		shader_program.use_program();
@@ -114,5 +115,9 @@ impl Renderer {
 	pub fn load_shader(&mut self, name: &str) {
 		self.shaders
 			.insert(String::from(name), ShaderProgram::new(name));
+	}
+
+	pub fn window(&self) -> &Window {
+		self.gl_window.window()
 	}
 }
