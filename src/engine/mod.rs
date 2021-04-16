@@ -7,7 +7,7 @@ mod shader_program;
 
 pub use camera::Camera;
 pub use entities::{Entity, EntityStore};
-pub use input::Inputs;
+pub use input::{ClickButton, Inputs};
 pub use mesh::Mesh;
 pub use render::{Renderable, Renderer, RendererBuilder};
 pub use shader_program::ShaderProgram;
@@ -41,13 +41,14 @@ pub fn core_loop(
 			false
 		};
 
-		inputs.update();
 		match event {
 			Event::LoopDestroyed => return,
 			Event::WindowEvent { event, .. } => match event {
 				WindowEvent::CloseRequested => *flow = ControlFlow::Exit,
 				WindowEvent::Resized(size) => renderer.resize(size),
 				WindowEvent::KeyboardInput { input, .. } => inputs.store_key(input),
+				WindowEvent::MouseInput { state, button, .. } => inputs.store_click(state, button),
+				WindowEvent::CursorMoved { position, .. } => inputs.store_motion(position),
 				_ => (),
 			},
 			Event::RedrawRequested(_) => {
@@ -61,6 +62,7 @@ pub fn core_loop(
 		if logic_frame {
 			entities.update(delta as f32 / 1000000.0, &inputs);
 			entities.exec_clear();
+			inputs.update();
 		}
 	})
 }
