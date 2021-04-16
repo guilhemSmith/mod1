@@ -1,4 +1,4 @@
-use super::ShaderProgram;
+use super::{Camera, EntityStore, ShaderProgram};
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -13,7 +13,7 @@ const DEFAULT_TITLE: String = String::new();
 
 pub trait Renderable {
 	fn shader_name(&self) -> &String;
-	fn draw(&self, shader_program: &ShaderProgram);
+	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera);
 }
 
 pub struct RendererBuilder {
@@ -78,6 +78,7 @@ impl RendererBuilder {
 		Renderer {
 			gl_window,
 			shaders: HashMap::new(),
+			cam_key: None,
 		}
 	}
 }
@@ -85,9 +86,14 @@ impl RendererBuilder {
 pub struct Renderer {
 	gl_window: ContextWrapper<PossiblyCurrent, Window>,
 	shaders: HashMap<String, ShaderProgram>,
+	cam_key: Option<u128>,
 }
 
 impl Renderer {
+	pub fn set_cam(&mut self, key: Option<u128>) {
+		self.cam_key = key;
+	}
+
 	pub fn clear(&self) {
 		unsafe {
 			gl::ClearColor(0.0, 0.0, 0.0, 1.0);
@@ -99,10 +105,19 @@ impl Renderer {
 		self.gl_window.swap_buffers().unwrap();
 	}
 
-	pub fn draw(&self, obj: &dyn Renderable) {
-		let shader_program = self.shaders.get(obj.shader_name()).unwrap();
-		shader_program.use_program();
-		obj.draw(shader_program);
+	pub fn draw(&self, obj: &dyn Renderable, entities: &mut EntityStore) {
+		if let Some(key) = self.cam_key {
+			if let Some(camera_entity) = entities.get(key) {
+				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
+					if let Some(shader_program) = self.shaders.get(obj.shader_name()) {
+						shader_program.use_program();
+						obj.draw(shader_program, camera);
+					}
+				} else {
+					println!("no cam: {:?}", camera_entity);
+				}
+			}
+		}
 	}
 
 	pub fn resize(&self, size: PhysicalSize<u32>) {

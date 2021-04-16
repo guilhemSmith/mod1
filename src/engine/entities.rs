@@ -1,8 +1,11 @@
 use super::Inputs;
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
 
-pub trait Entity {
-	fn update(&mut self, delta: u128, inputs: &Inputs);
+pub trait Entity: Debug {
+	fn update(&mut self, delta: f32, inputs: &Inputs);
+	fn as_any(&self) -> &dyn Any;
 }
 
 pub struct EntityStore {
@@ -20,7 +23,7 @@ impl EntityStore {
 		}
 	}
 
-	pub fn update(&mut self, delta: u128, inputs: &Inputs) {
+	pub fn update(&mut self, delta: f32, inputs: &Inputs) {
 		for (_key, entity) in self.entities.iter_mut() {
 			entity.update(delta, inputs);
 		}

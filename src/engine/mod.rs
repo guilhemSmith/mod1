@@ -1,9 +1,11 @@
+mod camera;
 mod entities;
 mod input;
 mod mesh;
 mod render;
 mod shader_program;
 
+pub use camera::Camera;
 pub use entities::{Entity, EntityStore};
 pub use input::Inputs;
 pub use mesh::Mesh;
@@ -30,11 +32,14 @@ pub fn core_loop(
 		*flow = ControlFlow::Poll;
 
 		let delta = time::Instant::now().duration_since(last_draw).as_micros();
-		if delta >= 8333 {
+		let logic_frame = if delta >= 8333 {
 			renderer.window().request_redraw();
 			let _fps = 1000000 / delta;
 			// println!("{}", _fps);
-		}
+			true
+		} else {
+			false
+		};
 
 		inputs.update();
 		match event {
@@ -47,13 +52,15 @@ pub fn core_loop(
 			},
 			Event::RedrawRequested(_) => {
 				renderer.clear();
-				renderer.draw(&triangle);
+				renderer.draw(&triangle, &mut entities);
 				renderer.swap();
 				last_draw = time::Instant::now();
 			}
 			_ => {}
 		}
-		entities.update(delta, &inputs);
-		entities.exec_clear();
+		if logic_frame {
+			entities.update(delta as f32 / 1000000.0, &inputs);
+			entities.exec_clear();
+		}
 	})
 }

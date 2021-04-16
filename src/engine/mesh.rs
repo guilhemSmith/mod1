@@ -1,15 +1,12 @@
-use super::Renderable;
-use super::ShaderProgram;
+use super::{Camera, Renderable, ShaderProgram};
 use gl::types::*;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
-use std::time::SystemTime;
 
 pub struct Mesh {
 	vao: u32,
 	shader_name: String,
-	start: SystemTime,
 }
 
 impl Mesh {
@@ -60,7 +57,6 @@ impl Mesh {
 		Self {
 			vao,
 			shader_name: String::from(shader_name),
-			start: SystemTime::now(),
 		}
 	}
 }
@@ -70,31 +66,15 @@ impl Renderable for Mesh {
 		&self.shader_name
 	}
 
-	fn draw(&self, shader_program: &ShaderProgram) {
+	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) {
 		let pos = glam::Vec3::ZERO;
 		let model = glam::Mat4::from_scale_rotation_translation(
 			glam::Vec3::new(0.5, 0.5, 0.5),
 			glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
 			pos,
 		);
-		let cam_speed = 3.0;
-		let pitch: f32 = 45.0;
-		let yaw: f32 = (SystemTime::now()
-			.duration_since(self.start)
-			.unwrap()
-			.as_millis() as f32
-			* cam_speed)
-			.to_radians();
-		let dist = 2.0;
-		let cam_pos = glam::Vec3::new(
-			yaw.to_radians().cos() * pitch.to_radians().cos(),
-			pitch.to_radians().sin(),
-			yaw.to_radians().sin() * pitch.to_radians().cos(),
-		)
-		.normalize() * dist;
-		let view = glam::Mat4::look_at_rh(cam_pos, pos, glam::Vec3::Y);
-		let projection =
-			glam::Mat4::perspective_rh_gl(f32::to_radians(90.0), 16.0 / 9.0, 0.1, 100.0);
+		let view = camera.view();
+		let projection = camera.perspective();
 		unsafe {
 			let uniform_loc = gl::GetUniformLocation(
 				shader_program.id(),
