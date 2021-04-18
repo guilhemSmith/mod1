@@ -1,6 +1,7 @@
 use super::{Camera, EngineError, Renderable, ShaderProgram};
 use crate::map_engine_error;
 use gl::types::*;
+use glam::Vec3;
 use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_void;
@@ -9,18 +10,16 @@ use std::ptr;
 pub struct Mesh {
 	vao: u32,
 	shader_name: String,
+	count: i32,
 }
 
 impl Mesh {
-	pub fn new(shader_name: &str) -> Self {
-		let vertices: [f32; 36] = [
-			-1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot left
-			1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot right
-			1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top right
-			1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top right
-			-1.0, 0.0, 1.0, 0.0, 0.8, 0.0, // top left
-			-1.0, 0.0, -1.0, 0.0, 0.8, 0.0, // bot left
-		];
+	pub fn new(shader_name: &str, vertices: &Vec<Vec3>) -> Self {
+		let count = vertices.len() as i32 * 3;
+		let vertices_flat: Vec<f32> = vertices
+			.iter()
+			.flat_map(|v3| vec![v3.x, v3.y, v3.z])
+			.collect();
 
 		let (mut vbo, mut vao) = (0, 0);
 		unsafe {
@@ -30,8 +29,8 @@ impl Mesh {
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 			gl::BufferData(
 				gl::ARRAY_BUFFER,
-				(vertices.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-				&vertices[0] as *const f32 as *const c_void,
+				(vertices_flat.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+				&vertices_flat[0] as *const f32 as *const c_void,
 				gl::STATIC_DRAW,
 			);
 			gl::EnableVertexAttribArray(0);
@@ -40,17 +39,8 @@ impl Mesh {
 				3,
 				gl::FLOAT,
 				gl::FALSE,
-				6 * mem::size_of::<GLfloat>() as GLsizei,
+				3 * mem::size_of::<GLfloat>() as GLsizei,
 				ptr::null(),
-			);
-			gl::EnableVertexAttribArray(1);
-			gl::VertexAttribPointer(
-				1,
-				3,
-				gl::FLOAT,
-				gl::FALSE,
-				6 * mem::size_of::<GLfloat>() as GLsizei,
-				(3 * mem::size_of::<GLfloat>()) as *const c_void,
 			);
 			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
 			gl::BindVertexArray(0);
@@ -59,6 +49,7 @@ impl Mesh {
 		Self {
 			vao,
 			shader_name: String::from(shader_name),
+			count,
 		}
 	}
 }
@@ -100,7 +91,7 @@ impl Renderable for Mesh {
 			);
 			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
 			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(gl::TRIANGLES, 0, 6);
+			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}
 		Ok(())
 	}

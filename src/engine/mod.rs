@@ -14,6 +14,8 @@ pub use mesh::Mesh;
 pub use render::{Renderable, Renderer, RendererBuilder};
 pub use shader_program::ShaderProgram;
 
+use glam::Vec3;
+
 use glutin::{
 	event::{Event, WindowEvent},
 	event_loop::{ControlFlow, EventLoopWindowTarget},
@@ -27,9 +29,27 @@ pub fn core_loop(
 	let mut inputs = Inputs::new();
 	let mut last_draw = time::Instant::now();
 	renderer.load_shader("triangle");
-	let triangle = Mesh::new("triangle");
-	// renderer.clear();
-	// renderer.swap();
+	let vertices = vec![
+		Vec3::new(-1.0, 0.0, -1.0),
+		Vec3::new(1.0, 0.0, -1.0),
+		Vec3::new(1.0, 0.0, 1.0),
+		Vec3::new(1.0, 0.0, 1.0),
+		Vec3::new(-1.0, 0.0, 1.0),
+		Vec3::new(-1.0, 0.0, -1.0),
+		Vec3::new(1.0, 0.0, 1.0),
+		Vec3::new(-1.0, 0.0, 1.0),
+		Vec3::new(1.0, 0.0, 3.0),
+		Vec3::new(1.0, 0.0, 3.0),
+		Vec3::new(-1.0, 0.0, 3.0),
+		Vec3::new(-1.0, 0.0, 1.0),
+		Vec3::new(1.0, 0.0, 1.0),
+		Vec3::new(-1.0, 0.0, -1.0),
+		Vec3::new(1.0, 0.0, -3.0),
+		Vec3::new(1.0, 0.0, -3.0),
+		Vec3::new(-1.0, 0.0, -3.0),
+		Vec3::new(-1.0, 0.0, -1.0),
+	];
+	let triangle = Mesh::new("triangle", &vertices);
 	Box::new(move |event, _target, flow: &mut ControlFlow| {
 		*flow = ControlFlow::Poll;
 
