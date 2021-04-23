@@ -13,8 +13,7 @@ const DEFAULT_HEIGHT: u32 = 600;
 const DEFAULT_TITLE: String = String::new();
 
 pub trait Renderable {
-	fn shader_name(&self) -> &String;
-	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) -> Result<(), EngineError>;
+	fn draw(&self, renderer: &Renderer, camera: &Camera) -> Result<(), EngineError>;
 }
 
 pub struct RendererBuilder {
@@ -110,16 +109,13 @@ impl Renderer {
 		map_engine_error!(self.gl_window.swap_buffers(), GLError, err_msg)
 	}
 
-	pub fn draw(&self, obj: &dyn Renderable, entities: &EntityStore) {
+	pub fn render(&self, obj: &dyn Renderable, entities: &EntityStore) {
 		if let Some(key) = self.cam_key {
 			if let Some(camera_entity) = entities.get(key) {
 				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
-					if let Some(shader_program) = self.shaders.get(obj.shader_name()) {
-						shader_program.use_program();
-						if let Err(err) = obj.draw(shader_program, camera) {
-							println!("{}", err);
-						};
-					}
+					if let Err(err) = obj.draw(self, camera) {
+						println!("{}", err);
+					};
 				}
 			}
 		}
@@ -141,6 +137,10 @@ impl Renderer {
 				println!("{}", err);
 			}
 		}
+	}
+
+	pub fn get_shader(&self, name: &str) -> Option<&ShaderProgram> {
+		self.shaders.get(name)
 	}
 
 	pub fn window(&self) -> &Window {

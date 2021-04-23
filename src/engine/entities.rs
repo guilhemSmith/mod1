@@ -43,7 +43,7 @@ impl EntityStore {
 		renderer.clear();
 		for (_key, entity) in self.entities.iter() {
 			if let Some(renderable) = entity.as_renderable() {
-				renderer.draw(renderable, self);
+				renderer.render(renderable, self);
 			}
 		}
 		return if let Err(err) = renderer.swap() {

@@ -1,4 +1,4 @@
-use super::{Camera, EngineError, Entity, Renderable, ShaderProgram};
+use super::{Camera, EngineError, Entity, Renderable, Renderer};
 use crate::map_engine_error;
 use gl::types::*;
 use glam::Vec3;
@@ -57,45 +57,44 @@ impl Mesh {
 }
 
 impl Renderable for Mesh {
-	fn shader_name(&self) -> &String {
-		&self.shader_name
-	}
-
-	fn draw(&self, shader_program: &ShaderProgram, camera: &Camera) -> Result<(), EngineError> {
-		let pos = glam::Vec3::ZERO;
-		let model = glam::Mat4::from_scale_rotation_translation(
-			glam::Vec3::new(0.5, 0.5, 0.5),
-			glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
-			pos,
-		);
-		let view = camera.view();
-		let projection = camera.perspective();
-		unsafe {
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("model"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
+	fn draw(&self, renderer: &Renderer, camera: &Camera) -> Result<(), EngineError> {
+		if let Some(shader_program) = renderer.get_shader(&self.shader_name) {
+			let pos = glam::Vec3::ZERO;
+			let model = glam::Mat4::from_scale_rotation_translation(
+				glam::Vec3::new(0.5, 0.5, 0.5),
+				glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
+				pos,
 			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, model.as_ref().as_ptr());
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("view"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, view.as_ref().as_ptr());
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("projection"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
-			gl::BindVertexArray(self.vao);
-			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
-		}
-		Ok(())
+			let view = camera.view();
+			let projection = camera.perspective();
+			shader_program.use_program();
+			unsafe {
+				let uniform_loc = gl::GetUniformLocation(
+					shader_program.id(),
+					map_engine_error!(CString::new("model"), BadCString)?
+						.as_c_str()
+						.as_ptr(),
+				);
+				gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, model.as_ref().as_ptr());
+				let uniform_loc = gl::GetUniformLocation(
+					shader_program.id(),
+					map_engine_error!(CString::new("view"), BadCString)?
+						.as_c_str()
+						.as_ptr(),
+				);
+				gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, view.as_ref().as_ptr());
+				let uniform_loc = gl::GetUniformLocation(
+					shader_program.id(),
+					map_engine_error!(CString::new("projection"), BadCString)?
+						.as_c_str()
+						.as_ptr(),
+				);
+				gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
+				gl::BindVertexArray(self.vao);
+				gl::DrawArrays(gl::TRIANGLES, 0, self.count);
+			}
+		};
+		return Ok(());
 	}
 }
 
