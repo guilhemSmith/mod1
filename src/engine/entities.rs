@@ -1,10 +1,11 @@
 use super::{Inputs, Renderable, Renderer};
 use std::any::Any;
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
 pub trait Entity: Debug {
-	fn update(&mut self, _delta: f32, _inputs: &Inputs) {}
+	fn update(&mut self, _delta: f32, _inputs: &Inputs, _store: &EntityStore) {}
 	fn as_renderable(&self) -> Option<&dyn Renderable> {
 		return None;
 	}
@@ -12,37 +13,40 @@ pub trait Entity: Debug {
 }
 
 pub struct EntityStore {
-	entities: HashMap<u128, Box<dyn Entity>>,
-	next_key: u128,
-	clear_queue: HashSet<u128>,
+	entities: HashMap<u128, RefCell<Box<dyn Entity>>>,
+	new_queue: RefCell<Vec<(u128, Box<dyn Entity>)>>,
+	del_queue: RefCell<HashSet<u128>>,
 }
 
 impl EntityStore {
 	pub fn new() -> Self {
 		EntityStore {
 			entities: HashMap::new(),
-			next_key: 0,
-			clear_queue: HashSet::new(),
+			new_queue: RefCell::new(Vec::new()),
+			del_queue: RefCell::new(HashSet::new()),
 		}
 	}
 
 	pub fn update(&mut self, delta: f32, inputs: &Inputs) {
-		for (_key, entity) in self.entities.iter_mut() {
-			entity.update(delta, inputs);
+		// run entities logic
+		for (_key, entity) in self.entities.iter() {
+			entity.borrow_mut().update(delta, inputs, self);
 		}
-	}
-
-	pub fn exec_clear(&mut self) {
-		for key in self.clear_queue.iter() {
-			self.entities.remove(key);
+		// remove dead entities
+		for key in self.del_queue.borrow_mut().drain() {
+			self.entities.remove(&key);
 		}
-		self.clear_queue = HashSet::new();
+		// insert new entities
+		for (key, new_elem) in self.new_queue.borrow_mut().drain(0..) {
+			println!("inserting...");
+			self.entities.insert(key, RefCell::new(new_elem));
+		}
 	}
 
 	pub fn render(&self, renderer: &mut Renderer) -> bool {
 		renderer.clear();
 		for (_key, entity) in self.entities.iter() {
-			if let Some(renderable) = entity.as_renderable() {
+			if let Some(renderable) = entity.borrow().as_renderable() {
 				renderer.render(renderable, self);
 			}
 		}
@@ -56,25 +60,38 @@ impl EntityStore {
 
 	#[allow(dead_code)]
 	pub fn insert(&mut self, entity: Box<dyn Entity>) -> u128 {
-		while let Some(_) = self.entities.get(&self.next_key) {
-			self.next_key += 1;
+		let keys: HashSet<u128> = self.entities.keys().cloned().collect();
+		let mut next_key: u128 = 0;
+		while keys.contains(&next_key) {
+			next_key += 1;
 		}
-		self.entities.insert(self.next_key, entity);
-		return self.next_key;
+		self.entities.insert(next_key, RefCell::new(entity));
+		return next_key;
 	}
 
 	#[allow(dead_code)]
-	pub fn queue_to_clear(&mut self, key: u128) {
-		self.clear_queue.insert(key);
+	pub fn to_new_queue(&self, entity: Box<dyn Entity>) -> u128 {
+		let keys: HashSet<u128> = self.entities.keys().cloned().collect();
+		let mut next_key: u128 = 0;
+		while keys.contains(&next_key) {
+			next_key += 1;
+		}
+		self.new_queue.borrow_mut().push((next_key, entity));
+		return next_key;
 	}
 
 	#[allow(dead_code)]
-	pub fn get(&self, key: u128) -> Option<&Box<dyn Entity>> {
-		return self.entities.get(&key);
+	pub fn to_del_queue(&self, key: u128) {
+		self.del_queue.borrow_mut().insert(key);
 	}
 
 	#[allow(dead_code)]
-	pub fn get_mut(&mut self, key: u128) -> Option<&mut Box<dyn Entity>> {
-		return self.entities.get_mut(&key);
+	pub fn get(&self, key: u128) -> Option<Ref<'_, Box<dyn Entity>>> {
+		return self.entities.get(&key).map(|rcell| rcell.borrow());
+	}
+
+	#[allow(dead_code)]
+	pub fn get_mut(&self, key: u128) -> Option<RefMut<Box<dyn Entity>>> {
+		return self.entities.get(&key).map(|rcell| rcell.borrow_mut());
 	}
 }

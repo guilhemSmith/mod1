@@ -65,7 +65,6 @@ pub fn core_loop(
 		}
 		if logic_frame {
 			entities.update(delta as f32 / 1000000.0, &inputs);
-			entities.exec_clear();
 			inputs.update();
 		}
 	})

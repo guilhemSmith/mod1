@@ -57,7 +57,7 @@ impl Camera {
 }
 
 impl super::Entity for Camera {
-	fn update(&mut self, delta: f32, inputs: &super::Inputs) {
+	fn update(&mut self, delta: f32, inputs: &super::Inputs, _store: &super::EntityStore) {
 		if inputs.is_click_pressed(ClickButton::Left) {
 			let axis = inputs.mouse_rel();
 			self.yaw += axis.x.to_radians() * self.speed * delta;
