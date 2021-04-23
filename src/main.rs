@@ -15,7 +15,7 @@ fn main() {
         Ok(renderer) => renderer,
     };
     let mut entities = engine::EntityStore::new();
-    let cam = Box::new(engine::Camera::new());
+    let cam = Box::new(engine::Camera::new(true));
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
     event_loop.run(engine::core_loop(renderer, entities));

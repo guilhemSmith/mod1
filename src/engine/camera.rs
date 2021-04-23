@@ -6,6 +6,9 @@ const NEAR: f32 = 0.1;
 const FAR: f32 = 100.0;
 const CENTER: Vec3 = Vec3::ZERO;
 const UP: Vec3 = Vec3::Y;
+const DIST_MIN: f32 = 2.0;
+const DIST_MAX: f32 = 10.0;
+const DIST_SPEED: f32 = 0.5;
 
 #[derive(Debug)]
 pub struct Camera {
@@ -15,10 +18,11 @@ pub struct Camera {
 	pitch: f32,
 	dist: f32,
 	speed: f32,
+	zoom_coef: f32,
 }
 
 impl Camera {
-	pub fn new() -> Self {
+	pub fn new(zoom_natural: bool) -> Self {
 		Camera {
 			fov: f32::to_radians(80.0),
 			ratio: 16.0 / 9.0,
@@ -26,6 +30,7 @@ impl Camera {
 			pitch: f32::to_radians(45.0),
 			dist: 2.0,
 			speed: 20.0,
+			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
 		}
 	}
 
@@ -60,6 +65,10 @@ impl super::Entity for Camera {
 			self.pitch = self
 				.pitch
 				.clamp(f32::to_radians(-80.0), f32::to_radians(80.0));
+		}
+		let dist_delta = inputs.wheel_delta() * self.zoom_coef;
+		if dist_delta != 0.0 {
+			self.dist = (self.dist - dist_delta).clamp(DIST_MIN, DIST_MAX);
 		}
 	}
 

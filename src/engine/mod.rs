@@ -17,7 +17,7 @@ pub use shader_program::ShaderProgram;
 use glam::Vec3;
 
 use glutin::{
-	event::{Event, WindowEvent},
+	event::{Event, MouseScrollDelta, WindowEvent},
 	event_loop::{ControlFlow, EventLoopWindowTarget},
 };
 use std::time;
@@ -71,6 +71,11 @@ pub fn core_loop(
 				WindowEvent::KeyboardInput { input, .. } => inputs.store_key(input),
 				WindowEvent::MouseInput { state, button, .. } => inputs.store_click(state, button),
 				WindowEvent::CursorMoved { position, .. } => inputs.store_motion(position),
+				WindowEvent::MouseWheel { delta, .. } => {
+					if let MouseScrollDelta::LineDelta(x, y) = delta {
+						inputs.store_mouse_wheel((x, y));
+					}
+				}
 				_ => (),
 			},
 			Event::RedrawRequested(_) => {

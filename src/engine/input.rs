@@ -55,6 +55,7 @@ pub struct Inputs {
 	active: bool,
 	keys_states: HashMap<u32, KeyState>,
 	mouse_state: MouseState,
+	wheel_delta: f32,
 }
 
 impl Inputs {
@@ -68,6 +69,7 @@ impl Inputs {
 				left_click: KeyState::new(false),
 				right_click: KeyState::new(false),
 			},
+			wheel_delta: 0.0,
 		}
 	}
 
@@ -148,6 +150,10 @@ impl Inputs {
 		self.mouse_state.rel
 	}
 
+	#[allow(dead_code)]
+	pub fn wheel_delta(&self) -> f32 {
+		self.wheel_delta
+	}
 	pub fn update(&mut self) {
 		if self.active {
 			for (_key, state) in self.keys_states.iter_mut() {
@@ -156,6 +162,7 @@ impl Inputs {
 			self.mouse_state.left_click.just_changed = false;
 			self.mouse_state.right_click.just_changed = false;
 			self.mouse_state.rel = Vec2::ZERO;
+			self.wheel_delta = 0.0;
 			self.active = false;
 		}
 	}
@@ -188,5 +195,10 @@ impl Inputs {
 		let offset = new_pos - self.mouse_state.pos;
 		self.mouse_state.rel += offset;
 		self.mouse_state.pos = new_pos;
+	}
+
+	pub fn store_mouse_wheel(&mut self, delta: (f32, f32)) {
+		self.active = true;
+		self.wheel_delta += delta.1;
 	}
 }
