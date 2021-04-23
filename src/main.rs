@@ -1,7 +1,8 @@
+mod algo;
 mod engine;
 
+use algo::surfaces::HeightMap;
 use engine::Mesh;
-use glam::Vec3;
 
 fn main() {
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -22,29 +23,22 @@ fn main() {
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
 
-    renderer.load_shader("triangle");
-    let vertices = vec![
-        Vec3::new(-1.0, 0.0, -1.0),
-        Vec3::new(1.0, 0.0, -1.0),
-        Vec3::new(1.0, 0.0, 1.0),
-        Vec3::new(1.0, 0.0, 1.0),
-        Vec3::new(-1.0, 0.0, 1.0),
-        Vec3::new(-1.0, 0.0, -1.0),
-        Vec3::new(1.0, 0.0, 1.0),
-        Vec3::new(-1.0, 0.0, 1.0),
-        Vec3::new(1.0, 0.0, 3.0),
-        Vec3::new(1.0, 0.0, 3.0),
-        Vec3::new(-1.0, 0.0, 3.0),
-        Vec3::new(-1.0, 0.0, 1.0),
-        Vec3::new(1.0, 0.0, 1.0),
-        Vec3::new(-1.0, 0.0, -1.0),
-        Vec3::new(1.0, 0.0, -3.0),
-        Vec3::new(1.0, 0.0, -3.0),
-        Vec3::new(-1.0, 0.0, -3.0),
-        Vec3::new(-1.0, 0.0, -1.0),
+    renderer.load_shader("terrain");
+    let map: Vec<f32> = vec![
+        0.0, 0.0, 0.0, 0.0, 0.0, // first row
+        0.0, 1.0, 1.0, 1.0, 0.0, // second row
+        0.0, 1.0, 1.5, 1.0, 0.0, // third row
+        0.0, 1.0, 1.0, 1.0, 0.0, // fourth row
+        0.0, 0.0, 0.0, 0.0, 0.0, // fifth row
     ];
-    let triangle = Box::new(Mesh::new("triangle", &vertices));
-    entities.insert(triangle);
+    let terrain = Box::new(HeightMap::new(map, 5, 1.0));
+    let vertices = terrain.gen_mesh_vertices();
+    for vertex in vertices.iter() {
+        println!("x: {}, y: {}, z: {}", vertex.x, vertex.y, vertex.z);
+    }
+    let terrain_mesh = Box::new(Mesh::new("terrain", &vertices, (5 - 1) as f32 * 0.5));
+    entities.insert(terrain);
+    entities.insert(terrain_mesh);
 
     event_loop.run(engine::core_loop(renderer, entities));
 }

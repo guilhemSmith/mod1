@@ -7,12 +7,13 @@ use glutin::{
 	ContextBuilder, ContextWrapper, PossiblyCurrent,
 };
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 const DEFAULT_WIDTH: u32 = 800;
 const DEFAULT_HEIGHT: u32 = 600;
 const DEFAULT_TITLE: String = String::new();
 
-pub trait Renderable {
+pub trait Renderable: Debug {
 	fn draw(&self, renderer: &Renderer, camera: &Camera) -> Result<(), EngineError>;
 }
 

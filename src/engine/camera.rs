@@ -28,7 +28,7 @@ impl Camera {
 			ratio: 16.0 / 9.0,
 			yaw: 0.0,
 			pitch: f32::to_radians(45.0),
-			dist: 2.0,
+			dist: 5.0,
 			speed: 20.0,
 			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
 		}
