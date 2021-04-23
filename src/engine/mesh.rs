@@ -1,12 +1,14 @@
-use super::{Camera, EngineError, Renderable, ShaderProgram};
+use super::{Camera, EngineError, Entity, Renderable, ShaderProgram};
 use crate::map_engine_error;
 use gl::types::*;
 use glam::Vec3;
+use std::any::Any;
 use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
 
+#[derive(Debug)]
 pub struct Mesh {
 	vao: u32,
 	shader_name: String,
@@ -94,5 +96,15 @@ impl Renderable for Mesh {
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}
 		Ok(())
+	}
+}
+
+impl Entity for Mesh {
+	fn as_renderable(&self) -> Option<&dyn Renderable> {
+		return Some(self);
+	}
+
+	fn as_any(&self) -> &dyn Any {
+		self
 	}
 }

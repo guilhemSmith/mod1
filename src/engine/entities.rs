@@ -1,10 +1,13 @@
-use super::Inputs;
+use super::{Inputs, Renderable, Renderer};
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
 pub trait Entity: Debug {
-	fn update(&mut self, delta: f32, inputs: &Inputs);
+	fn update(&mut self, _delta: f32, _inputs: &Inputs) {}
+	fn as_renderable(&self) -> Option<&dyn Renderable> {
+		return None;
+	}
 	fn as_any(&self) -> &dyn Any;
 }
 
@@ -36,6 +39,21 @@ impl EntityStore {
 		self.clear_queue = HashSet::new();
 	}
 
+	pub fn render(&self, renderer: &mut Renderer) -> bool {
+		renderer.clear();
+		for (_key, entity) in self.entities.iter() {
+			if let Some(renderable) = entity.as_renderable() {
+				renderer.draw(renderable, self);
+			}
+		}
+		return if let Err(err) = renderer.swap() {
+			eprintln!("{}", err);
+			false
+		} else {
+			true
+		};
+	}
+
 	#[allow(dead_code)]
 	pub fn insert(&mut self, entity: Box<dyn Entity>) -> u128 {
 		while let Some(_) = self.entities.get(&self.next_key) {
@@ -51,7 +69,7 @@ impl EntityStore {
 	}
 
 	#[allow(dead_code)]
-	pub fn get(&mut self, key: u128) -> Option<&Box<dyn Entity>> {
+	pub fn get(&self, key: u128) -> Option<&Box<dyn Entity>> {
 		return self.entities.get(&key);
 	}
 

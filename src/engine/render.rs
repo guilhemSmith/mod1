@@ -110,7 +110,7 @@ impl Renderer {
 		map_engine_error!(self.gl_window.swap_buffers(), GLError, err_msg)
 	}
 
-	pub fn draw(&self, obj: &dyn Renderable, entities: &mut EntityStore) {
+	pub fn draw(&self, obj: &dyn Renderable, entities: &EntityStore) {
 		if let Some(key) = self.cam_key {
 			if let Some(camera_entity) = entities.get(key) {
 				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
