@@ -4,7 +4,7 @@ use glam::{Vec2, Vec3};
 use std::any::Any;
 
 const MAP_DIM: usize = 100;
-const WEIGHT_DIST: f32 = 3.0;
+const WEIGHT_DIST: f32 = 5.0;
 
 #[derive(Debug)]
 pub struct HeightMap {
