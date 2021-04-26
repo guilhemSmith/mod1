@@ -3,6 +3,7 @@ mod engine;
 
 use algo::HeightMap;
 use engine::Mesh;
+use glam::Vec3;
 
 fn main() {
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -24,16 +25,14 @@ fn main() {
     renderer.set_cam(Some(cam_key));
 
     renderer.load_shader("terrain");
-    let map: Vec<f32> = vec![
-        0.0, 0.0, 0.0, 0.0, 0.0, // first row
-        0.0, 1.0, 1.0, 1.0, 0.0, // second row
-        0.0, 1.0, 1.5, 1.0, 0.0, // third row
-        0.0, 1.0, 1.0, 1.0, 0.0, // fourth row
-        0.0, 0.0, 0.0, 0.0, 0.0, // fifth row
-    ];
-    let terrain = Box::new(HeightMap::new(map, 5, 1.0));
+    let map = vec![Vec3::new(49.0, 49.0, 20.0)];
+    let terrain = Box::new(HeightMap::new(map, 1.0));
     let vertices = terrain.gen_mesh_vertices();
-    let terrain_mesh = Box::new(Mesh::new("terrain", &vertices, (5 - 1) as f32 * 0.5));
+    let terrain_mesh = Box::new(Mesh::new(
+        "terrain",
+        &vertices,
+        (100 - 1) as f32 * 0.5 * 1.0,
+    ));
     entities.insert(terrain);
     entities.insert(terrain_mesh);
 
