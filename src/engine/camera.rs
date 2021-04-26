@@ -19,6 +19,14 @@ pub struct Camera {
 	dist: f32,
 	speed: f32,
 	zoom_coef: f32,
+	mode: PolygonMode,
+}
+
+#[derive(Debug)]
+enum PolygonMode {
+	Point,
+	Line,
+	Face,
 }
 
 impl Camera {
@@ -31,6 +39,7 @@ impl Camera {
 			dist: 5.0,
 			speed: 20.0,
 			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
+			mode: PolygonMode::Face,
 		}
 	}
 
@@ -69,6 +78,25 @@ impl super::Entity for Camera {
 		let dist_delta = inputs.wheel_delta() * self.zoom_coef;
 		if dist_delta != 0.0 {
 			self.dist = (self.dist - dist_delta).clamp(DIST_MIN, DIST_MAX);
+		}
+		if inputs.is_just_pressed(57) {
+			let flag = match self.mode {
+				PolygonMode::Point => {
+					self.mode = PolygonMode::Line;
+					gl::LINE
+				}
+				PolygonMode::Line => {
+					self.mode = PolygonMode::Face;
+					gl::FILL
+				}
+				PolygonMode::Face => {
+					self.mode = PolygonMode::Point;
+					gl::POINT
+				}
+			};
+			unsafe {
+				gl::PolygonMode(gl::FRONT_AND_BACK, flag);
+			}
 		}
 	}
 
