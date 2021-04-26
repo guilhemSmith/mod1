@@ -33,9 +33,6 @@ fn main() {
     ];
     let terrain = Box::new(HeightMap::new(map, 5, 1.0));
     let vertices = terrain.gen_mesh_vertices();
-    for vertex in vertices.iter() {
-        println!("x: {}, y: {}, z: {}", vertex.x, vertex.y, vertex.z);
-    }
     let terrain_mesh = Box::new(Mesh::new("terrain", &vertices, (5 - 1) as f32 * 0.5));
     entities.insert(terrain);
     entities.insert(terrain_mesh);
