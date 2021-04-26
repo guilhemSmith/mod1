@@ -25,7 +25,16 @@ fn main() {
     renderer.set_cam(Some(cam_key));
 
     renderer.load_shader("terrain");
-    let map = vec![Vec3::new(49.0, 49.0, 20.0)];
+    let map = vec![
+        Vec3::new(40.0, 40.0, 50.0),
+        Vec3::new(40.0, 50.0, 50.0),
+        Vec3::new(40.0, 60.0, 50.0),
+        Vec3::new(50.0, 60.0, 50.0),
+        Vec3::new(50.0, 40.0, 50.0),
+        Vec3::new(60.0, 40.0, 50.0),
+        Vec3::new(60.0, 50.0, 50.0),
+        Vec3::new(60.0, 60.0, 50.0),
+    ];
     let terrain = Box::new(HeightMap::new(map, 1.0));
     let vertices = terrain.gen_mesh_vertices();
     let terrain_mesh = Box::new(Mesh::new(

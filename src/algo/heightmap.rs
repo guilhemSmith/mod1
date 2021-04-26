@@ -1,9 +1,10 @@
 use crate::engine::Entity;
 
-use glam::Vec3;
+use glam::{Vec2, Vec3};
 use std::any::Any;
 
 const MAP_DIM: usize = 100;
+const WEIGHT_DIST: f32 = 3.0;
 
 #[derive(Debug)]
 pub struct HeightMap {
@@ -31,6 +32,20 @@ impl HeightMap {
 			poi.push(Vec3::new(max_val, variant, 0.0));
 		}
 	}
+
+	fn idw(coord: Vec2, poi: &Vec<Vec3>) -> f32 {
+		let mut top = 0.0;
+		let mut bot = 0.0;
+		for i in poi.iter() {
+			let k_coord = Vec2::new(i.x, i.y);
+			let k_value = i.z;
+			let inv_dist = (1.0 / (coord - k_coord).length()).powf(WEIGHT_DIST);
+			top += inv_dist * k_value;
+			bot += inv_dist;
+		}
+		return top / bot;
+	}
+
 	fn poi_to_map(mut poi: Vec<Vec3>) -> Vec<f32> {
 		HeightMap::add_border_zero(&mut poi);
 		let mut map = vec![0.0; MAP_DIM * MAP_DIM];
@@ -40,6 +55,8 @@ impl HeightMap {
 				let y = j as f32;
 				if let Some(point) = poi.iter().find(|pt| pt.x == x && pt.y == y) {
 					map[i + j * MAP_DIM] = point.z
+				} else {
+					map[i + j * MAP_DIM] = HeightMap::idw(Vec2::new(x, y), &poi);
 				}
 			}
 		}

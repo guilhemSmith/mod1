@@ -6,7 +6,7 @@ const NEAR: f32 = 0.1;
 const FAR: f32 = 300.0;
 const CENTER: Vec3 = Vec3::ZERO;
 const UP: Vec3 = Vec3::Y;
-const DIST_MIN: f32 = 2.0;
+const DIST_MIN: f32 = 10.0;
 const DIST_MAX: f32 = 100.0;
 const DIST_SPEED: f32 = 0.5;
 
@@ -36,7 +36,7 @@ impl Camera {
 			ratio: 16.0 / 9.0,
 			yaw: 0.0,
 			pitch: f32::to_radians(45.0),
-			dist: 50.0,
+			dist: 75.0,
 			speed: 20.0,
 			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
 			mode: PolygonMode::Face,
