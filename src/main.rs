@@ -1,7 +1,7 @@
 mod algo;
 mod engine;
 
-use algo::surfaces::HeightMap;
+use algo::HeightMap;
 use engine::Mesh;
 
 fn main() {

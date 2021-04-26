@@ -1,1 +1,3 @@
-pub mod surfaces;
+mod heightmap;
+
+pub use heightmap::HeightMap;
