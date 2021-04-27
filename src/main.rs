@@ -3,7 +3,7 @@ mod engine;
 
 use algo::HeightMap;
 use engine::{Camera, EntityStore, Mesh, PolygonMode};
-use glam::Vec3;
+// use glam::Vec3;
 
 fn main() {
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -26,20 +26,30 @@ fn main() {
 
     renderer.load_shader("terrain");
     let map = vec![
-        Vec3::new(40.0, 40.0, 30.0),
-        Vec3::new(40.0, 50.0, 30.0),
-        Vec3::new(40.0, 60.0, 30.0),
-        Vec3::new(50.0, 60.0, 30.0),
-        Vec3::new(50.0, 50.0, 10.0),
-        Vec3::new(50.0, 40.0, 30.0),
-        Vec3::new(60.0, 40.0, 30.0),
-        Vec3::new(60.0, 50.0, 30.0),
-        Vec3::new(60.0, 60.0, 30.0),
+        // Vec3::new(40.0, 40.0, 30.0),
+        // Vec3::new(40.0, 50.0, 30.0),
+        // Vec3::new(40.0, 60.0, 30.0),
+        // Vec3::new(50.0, 60.0, 30.0),
+        // Vec3::new(50.0, 50.0, 10.0),
+        // Vec3::new(50.0, 40.0, 30.0),
+        // Vec3::new(60.0, 40.0, 30.0),
+        // Vec3::new(60.0, 50.0, 30.0),
+        // Vec3::new(60.0, 60.0, 30.0),
     ];
     let terrain = Box::new(HeightMap::new(map));
     let terrain_mesh = Box::new(Mesh::new("terrain", terrain.height_points(), algo::DIM));
     entities.insert(terrain);
     entities.insert(terrain_mesh);
 
+    renderer.load_shader("water");
+    let water_mesh = Box::new(Mesh::new(
+        "water",
+        &vec![0.0; algo::DIM * algo::DIM],
+        algo::DIM,
+    ));
+    let water_id = entities.insert(water_mesh);
+    let water = algo::Water::new(water_id);
+    entities.insert(Box::new(water));
+    let proxy = event_loop.create_proxy();
     event_loop.run(engine::core_loop(renderer, entities, proxy));
 }
