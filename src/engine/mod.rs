@@ -26,18 +26,15 @@ pub fn core_loop(
 ) -> Box<dyn FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow)> {
 	let mut inputs = Inputs::new();
 	let mut last_draw = time::Instant::now();
+	let mut last_logic = time::Instant::now();
 	Box::new(move |event, _target, flow: &mut ControlFlow| {
 		*flow = ControlFlow::Poll;
 
-		let delta = time::Instant::now().duration_since(last_draw).as_micros();
-		let mut logic_frame = if delta >= 8333 {
+		if time::Instant::now().duration_since(last_draw).as_micros() >= 8333 {
 			renderer.window().request_redraw();
-			let _fps = 1000000 / delta;
-			// println!("{}", _fps);
-			true
-		} else {
-			false
-		};
+		}
+		let delta_logic = time::Instant::now().duration_since(last_logic).as_micros();
+		let mut logic_frame = delta_logic >= 8333;
 
 		match event {
 			Event::LoopDestroyed => return,
@@ -64,7 +61,8 @@ pub fn core_loop(
 			_ => {}
 		}
 		if logic_frame {
-			entities.update(delta as f32 / 1000000.0, &inputs);
+			last_logic = time::Instant::now();
+			entities.update(delta_logic as f32 / 1000000.0, &inputs);
 			inputs.update();
 		}
 	})
