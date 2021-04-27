@@ -71,11 +71,16 @@ impl HeightMap {
 			for j in 0..MAP_DIM {
 				let y = j as f32 * self.scale;
 				if i + 1 < MAP_DIM && j + 1 < MAP_DIM {
-					let top_left = Vec3::new(x, self.points[i + j * MAP_DIM], y);
-					let top_right = Vec3::new(x + one, self.points[i + 1 + j * MAP_DIM], y);
-					let bot_left = Vec3::new(x, self.points[i + (j + 1) * MAP_DIM], y + one);
-					let bot_right =
-						Vec3::new(x + one, self.points[i + 1 + (j + 1) * MAP_DIM], y + one);
+					let top_left = Vec3::new(x, self.points[i + j * MAP_DIM] * self.scale, y);
+					let top_right =
+						Vec3::new(x + one, self.points[i + 1 + j * MAP_DIM] * self.scale, y);
+					let bot_left =
+						Vec3::new(x, self.points[i + (j + 1) * MAP_DIM] * self.scale, y + one);
+					let bot_right = Vec3::new(
+						x + one,
+						self.points[i + 1 + (j + 1) * MAP_DIM] * self.scale,
+						y + one,
+					);
 
 					if (top_left.y - bot_right.y).abs() > (top_right.y - bot_left.y).abs() {
 						// first triangle
