@@ -6,6 +6,7 @@ use std::fmt::Debug;
 
 pub trait Entity: Debug {
 	fn update(&mut self, _delta: f32, _inputs: &Inputs, _store: &EntityStore) {}
+	fn start(&mut self, _store: &EntityStore) {}
 	fn as_renderable(&self) -> Option<&dyn Renderable> {
 		return None;
 	}
@@ -14,6 +15,7 @@ pub trait Entity: Debug {
 
 pub struct EntityStore {
 	entities: HashMap<u128, RefCell<Box<dyn Entity>>>,
+	reserved_keys: RefCell<HashSet<u128>>,
 	new_queue: RefCell<Vec<(u128, Box<dyn Entity>)>>,
 	del_queue: RefCell<HashSet<u128>>,
 }
@@ -22,6 +24,7 @@ impl EntityStore {
 	pub fn new() -> Self {
 		EntityStore {
 			entities: HashMap::new(),
+			reserved_keys: RefCell::new(HashSet::new()),
 			new_queue: RefCell::new(Vec::new()),
 			del_queue: RefCell::new(HashSet::new()),
 		}
@@ -35,10 +38,11 @@ impl EntityStore {
 		// remove dead entities
 		for key in self.del_queue.borrow_mut().drain() {
 			self.entities.remove(&key);
+			self.reserved_keys.borrow_mut().remove(&key);
 		}
 		// insert new entities
-		for (key, new_elem) in self.new_queue.borrow_mut().drain(0..) {
-			println!("inserting...");
+		for (key, mut new_elem) in self.new_queue.borrow_mut().drain(0..) {
+			new_elem.start(&self);
 			self.entities.insert(key, RefCell::new(new_elem));
 		}
 	}
@@ -59,23 +63,27 @@ impl EntityStore {
 	}
 
 	#[allow(dead_code)]
-	pub fn insert(&mut self, entity: Box<dyn Entity>) -> u128 {
-		let keys: HashSet<u128> = self.entities.keys().cloned().collect();
+	pub fn insert(&mut self, mut entity: Box<dyn Entity>) -> u128 {
+		let mut keys = self.reserved_keys.borrow_mut();
 		let mut next_key: u128 = 0;
 		while keys.contains(&next_key) {
 			next_key += 1;
 		}
+		entity.start(&self);
+		keys.insert(next_key);
 		self.entities.insert(next_key, RefCell::new(entity));
 		return next_key;
 	}
 
 	#[allow(dead_code)]
-	pub fn to_new_queue(&self, entity: Box<dyn Entity>) -> u128 {
-		let keys: HashSet<u128> = self.entities.keys().cloned().collect();
+	pub fn to_new_queue(&self, mut entity: Box<dyn Entity>) -> u128 {
+		let mut keys = self.reserved_keys.borrow_mut();
 		let mut next_key: u128 = 0;
 		while keys.contains(&next_key) {
 			next_key += 1;
 		}
+		entity.start(&self);
+		keys.insert(next_key);
 		self.new_queue.borrow_mut().push((next_key, entity));
 		return next_key;
 	}

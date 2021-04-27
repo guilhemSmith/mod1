@@ -1,4 +1,4 @@
-use super::ClickButton;
+use super::{ClickButton, Inputs};
 use glam::{Mat4, Vec3};
 use std::any::Any;
 
@@ -23,14 +23,14 @@ pub struct Camera {
 }
 
 #[derive(Debug)]
-enum PolygonMode {
+pub enum PolygonMode {
 	Point,
 	Line,
 	Face,
 }
 
 impl Camera {
-	pub fn new(zoom_natural: bool) -> Self {
+	pub fn new(zoom_natural: bool, mode: Option<PolygonMode>) -> Self {
 		Camera {
 			fov: f32::to_radians(80.0),
 			ratio: 16.0 / 9.0,
@@ -39,7 +39,7 @@ impl Camera {
 			dist: 75.0,
 			speed: 20.0,
 			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
-			mode: PolygonMode::Face,
+			mode: mode.unwrap_or(PolygonMode::Face),
 		}
 	}
 
@@ -63,9 +63,35 @@ impl Camera {
 		.normalize() * self.dist;
 		Mat4::look_at_rh(cam_pos, CENTER, UP)
 	}
+
+	fn change_render_mode(&mut self) {
+		match self.mode {
+			PolygonMode::Point => self.mode = PolygonMode::Line,
+			PolygonMode::Line => self.mode = PolygonMode::Face,
+			PolygonMode::Face => self.mode = PolygonMode::Point,
+		};
+		self.set_render_mode();
+	}
+
+	fn set_render_mode(&self) {
+		unsafe {
+			gl::PolygonMode(
+				gl::FRONT_AND_BACK,
+				match self.mode {
+					PolygonMode::Point => gl::POINT,
+					PolygonMode::Line => gl::LINE,
+					PolygonMode::Face => gl::FILL,
+				},
+			);
+		}
+	}
 }
 
 impl super::Entity for Camera {
+	fn start(&mut self, _store: &super::EntityStore) {
+		self.set_render_mode();
+	}
+
 	fn update(&mut self, delta: f32, inputs: &super::Inputs, _store: &super::EntityStore) {
 		if inputs.is_click_pressed(ClickButton::Left) {
 			let axis = inputs.mouse_rel();
@@ -79,24 +105,8 @@ impl super::Entity for Camera {
 		if dist_delta != 0.0 {
 			self.dist = (self.dist - dist_delta).clamp(DIST_MIN, DIST_MAX);
 		}
-		if inputs.is_just_pressed(57) {
-			let flag = match self.mode {
-				PolygonMode::Point => {
-					self.mode = PolygonMode::Line;
-					gl::LINE
-				}
-				PolygonMode::Line => {
-					self.mode = PolygonMode::Face;
-					gl::FILL
-				}
-				PolygonMode::Face => {
-					self.mode = PolygonMode::Point;
-					gl::POINT
-				}
-			};
-			unsafe {
-				gl::PolygonMode(gl::FRONT_AND_BACK, flag);
-			}
+		if inputs.is_just_pressed(Inputs::K_SPACE) {
+			self.change_render_mode();
 		}
 	}
 

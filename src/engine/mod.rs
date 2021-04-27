@@ -6,7 +6,7 @@ mod mesh;
 mod render;
 mod shader_program;
 
-pub use camera::Camera;
+pub use camera::{Camera, PolygonMode};
 pub use entities::{Entity, EntityStore};
 pub use error::EngineError;
 pub use input::{ClickButton, Inputs};

@@ -2,7 +2,7 @@ mod algo;
 mod engine;
 
 use algo::HeightMap;
-use engine::Mesh;
+use engine::{Camera, EntityStore, Mesh, PolygonMode};
 use glam::Vec3;
 
 fn main() {
@@ -19,8 +19,8 @@ fn main() {
         }
         Ok(renderer) => renderer,
     };
-    let mut entities = engine::EntityStore::new();
-    let cam = Box::new(engine::Camera::new(true));
+    let mut entities = EntityStore::new();
+    let cam = Box::new(Camera::new(true, Some(PolygonMode::Line)));
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
 

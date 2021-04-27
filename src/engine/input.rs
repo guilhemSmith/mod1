@@ -4,21 +4,6 @@ use glutin::event::{ElementState, KeyboardInput, MouseButton};
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-pub const K_ESC: u32 = 1;
-#[allow(dead_code)]
-pub const K_SPACE: u32 = 57;
-#[allow(dead_code)]
-pub const K_ENTER: u32 = 28;
-#[allow(dead_code)]
-pub const K_UP: u32 = 103;
-#[allow(dead_code)]
-pub const K_DOWN: u32 = 108;
-#[allow(dead_code)]
-pub const K_LEFT: u32 = 105;
-#[allow(dead_code)]
-pub const K_RIGHT: u32 = 106;
-
-#[allow(dead_code)]
 pub enum ClickButton {
 	Left,
 	Right,
@@ -59,6 +44,21 @@ pub struct Inputs {
 }
 
 impl Inputs {
+	#[allow(dead_code)]
+	pub const K_ESC: u32 = 1;
+	#[allow(dead_code)]
+	pub const K_SPACE: u32 = 57;
+	#[allow(dead_code)]
+	pub const K_ENTER: u32 = 28;
+	#[allow(dead_code)]
+	pub const K_UP: u32 = 103;
+	#[allow(dead_code)]
+	pub const K_DOWN: u32 = 108;
+	#[allow(dead_code)]
+	pub const K_LEFT: u32 = 105;
+	#[allow(dead_code)]
+	pub const K_RIGHT: u32 = 106;
+
 	pub fn new() -> Self {
 		Inputs {
 			active: false,

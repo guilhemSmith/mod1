@@ -77,7 +77,6 @@ impl RendererBuilder {
 		gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 		unsafe {
 			gl::Enable(gl::DEPTH_TEST);
-			gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
 		}
 		Ok(Renderer {
 			gl_window,
