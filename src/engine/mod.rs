@@ -16,25 +16,19 @@ pub use shader_program::ShaderProgram;
 
 use glutin::{
 	event::{Event, MouseScrollDelta, WindowEvent},
-	event_loop::{ControlFlow, EventLoopWindowTarget},
+	event_loop::{ControlFlow, EventLoopProxy, EventLoopWindowTarget},
 };
 use std::time;
 
 pub fn core_loop(
 	mut renderer: Renderer,
 	mut entities: EntityStore,
+	_event_proxy: EventLoopProxy<()>,
 ) -> Box<dyn FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow)> {
 	let mut inputs = Inputs::new();
 	let mut last_draw = time::Instant::now();
-	let mut last_logic = time::Instant::now();
 	Box::new(move |event, _target, flow: &mut ControlFlow| {
 		*flow = ControlFlow::Poll;
-
-		if time::Instant::now().duration_since(last_draw).as_micros() >= 8333 {
-			renderer.window().request_redraw();
-		}
-		let delta_logic = time::Instant::now().duration_since(last_logic).as_micros();
-		let mut logic_frame = delta_logic >= 8333;
 
 		match event {
 			Event::LoopDestroyed => return,
@@ -52,18 +46,20 @@ pub fn core_loop(
 				_ => (),
 			},
 			Event::RedrawRequested(_) => {
+				let delta = time::Instant::now().duration_since(last_draw).as_micros();
+				entities.update(delta as f32 / 1000000.0, &inputs);
+				inputs.update();
 				last_draw = time::Instant::now();
 				if !entities.render(&mut renderer) {
-					logic_frame = false;
 					*flow = ControlFlow::Exit;
 				}
 			}
+			Event::UserEvent(_) => {}
 			_ => {}
 		}
-		if logic_frame {
-			last_logic = time::Instant::now();
-			entities.update(delta_logic as f32 / 1000000.0, &inputs);
-			inputs.update();
+
+		if time::Instant::now().duration_since(last_draw).as_micros() >= 8333 {
+			renderer.window().request_redraw();
 		}
 	})
 }

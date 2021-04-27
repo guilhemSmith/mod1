@@ -36,15 +36,10 @@ fn main() {
         Vec3::new(60.0, 50.0, 30.0),
         Vec3::new(60.0, 60.0, 30.0),
     ];
-    let terrain = Box::new(HeightMap::new(map, 1.0));
-    let vertices = terrain.gen_mesh_vertices();
-    let terrain_mesh = Box::new(Mesh::new(
-        "terrain",
-        &vertices,
-        (100 - 1) as f32 * 0.5 * 1.0,
-    ));
+    let terrain = Box::new(HeightMap::new(map));
+    let terrain_mesh = Box::new(Mesh::new("terrain", terrain.height_points(), algo::DIM));
     entities.insert(terrain);
     entities.insert(terrain_mesh);
 
-    event_loop.run(engine::core_loop(renderer, entities));
+    event_loop.run(engine::core_loop(renderer, entities, proxy));
 }

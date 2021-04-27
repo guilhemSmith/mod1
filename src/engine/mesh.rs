@@ -11,18 +11,17 @@ use std::ptr;
 #[derive(Debug)]
 pub struct Mesh {
 	vao: u32,
+	vbo: u32,
 	shader_name: String,
 	count: i32,
 	offset: f32,
 }
 
 impl Mesh {
-	pub fn new(shader_name: &str, vertices: &Vec<Vec3>, offset: f32) -> Self {
-		let count = vertices.len() as i32 * 3;
-		let vertices_flat: Vec<f32> = vertices
-			.iter()
-			.flat_map(|v3| vec![v3.x, v3.y, v3.z])
-			.collect();
+	pub fn new(shader_name: &str, points: &Vec<f32>, dim: usize) -> Self {
+		let offset = (dim - 1) as f32 * 0.5;
+		let vertices_flat: Vec<f32> = Mesh::gen_vertices(100, points);
+		let count = vertices_flat.len() as i32;
 
 		let (mut vbo, mut vao) = (0, 0);
 		unsafe {
@@ -51,10 +50,49 @@ impl Mesh {
 
 		Self {
 			vao,
+			vbo,
 			shader_name: String::from(shader_name),
 			count,
 			offset,
 		}
+	}
+
+	pub fn gen_vertices(dim: usize, height_pts: &Vec<f32>) -> Vec<f32> {
+		let mut vertices = Vec::new();
+		let one = 1.0;
+		for i in 0..dim {
+			let x = i as f32;
+			for j in 0..dim {
+				let y = j as f32;
+				if i + 1 < dim && j + 1 < dim {
+					let top_left = vec![x, height_pts[i + j * dim], y];
+					let top_right = vec![x + one, height_pts[i + 1 + j * dim], y];
+					let bot_left = vec![x, height_pts[i + (j + 1) * dim], y + one];
+					let bot_right = vec![x + one, height_pts[i + 1 + (j + 1) * dim], y + one];
+
+					if (top_left[1] - bot_right[1]).abs() > (top_right[1] - bot_left[1]).abs() {
+						// first triangle
+						vertices.extend_from_slice(&top_left);
+						vertices.extend_from_slice(&top_right);
+						vertices.extend_from_slice(&bot_right);
+						// second triangle
+						vertices.extend_from_slice(&top_left);
+						vertices.extend_from_slice(&bot_left);
+						vertices.extend_from_slice(&bot_right);
+					} else {
+						// first triangle
+						vertices.extend_from_slice(&top_right);
+						vertices.extend_from_slice(&top_left);
+						vertices.extend_from_slice(&bot_left);
+						// second triangle
+						vertices.extend_from_slice(&top_right);
+						vertices.extend_from_slice(&bot_right);
+						vertices.extend_from_slice(&bot_left);
+					}
+				}
+			}
+		}
+		return vertices;
 	}
 }
 
