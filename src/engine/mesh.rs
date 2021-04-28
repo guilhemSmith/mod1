@@ -69,25 +69,35 @@ impl Mesh {
 					let bot_left = vec![x, height_pts[i + (j + 1) * dim], y + one];
 					let bot_right = vec![x + one, height_pts[i + 1 + (j + 1) * dim], y + one];
 
-					if (top_left[1] - bot_right[1]).abs() > (top_right[1] - bot_left[1]).abs() {
-						// first triangle
-						vertices.extend_from_slice(&top_left);
-						vertices.extend_from_slice(&top_right);
-						vertices.extend_from_slice(&bot_right);
-						// second triangle
-						vertices.extend_from_slice(&top_left);
-						vertices.extend_from_slice(&bot_left);
-						vertices.extend_from_slice(&bot_right);
-					} else {
-						// first triangle
-						vertices.extend_from_slice(&top_right);
-						vertices.extend_from_slice(&top_left);
-						vertices.extend_from_slice(&bot_left);
-						// second triangle
-						vertices.extend_from_slice(&top_right);
-						vertices.extend_from_slice(&bot_right);
-						vertices.extend_from_slice(&bot_left);
-					}
+					// first triangle
+					vertices.extend_from_slice(&top_left);
+					vertices.extend_from_slice(&top_right);
+					vertices.extend_from_slice(&bot_right);
+					// second triangle
+					vertices.extend_from_slice(&top_left);
+					vertices.extend_from_slice(&bot_left);
+					vertices.extend_from_slice(&bot_right);
+
+					// old code supposed to reduce bad geometry
+					// if (top_left[1] - bot_right[1]).abs() > (top_right[1] - bot_left[1]).abs() {
+					// 	// first triangle
+					// 	vertices.extend_from_slice(&top_left);
+					// 	vertices.extend_from_slice(&top_right);
+					// 	vertices.extend_from_slice(&bot_right);
+					// 	// second triangle
+					// 	vertices.extend_from_slice(&top_left);
+					// 	vertices.extend_from_slice(&bot_left);
+					// 	vertices.extend_from_slice(&bot_right);
+					// } else {
+					// 	// first triangle
+					// 	vertices.extend_from_slice(&top_right);
+					// 	vertices.extend_from_slice(&top_left);
+					// 	vertices.extend_from_slice(&bot_left);
+					// 	// second triangle
+					// 	vertices.extend_from_slice(&top_right);
+					// 	vertices.extend_from_slice(&bot_right);
+					// 	vertices.extend_from_slice(&bot_left);
+					// }
 				}
 			}
 		}

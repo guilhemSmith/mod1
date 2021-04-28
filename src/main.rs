@@ -48,7 +48,7 @@ fn main() {
     renderer.load_shader("water");
     let water_mesh = Box::new(Mesh::new(
         "water",
-        &vec![0.0; algo::DIM * algo::DIM],
+        &vec![-0.1; algo::DIM * algo::DIM],
         algo::DIM,
     ));
     let water_id = entities.insert(water_mesh);
