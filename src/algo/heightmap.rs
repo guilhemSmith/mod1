@@ -1,13 +1,15 @@
+use super::{Map, DIM};
 use crate::engine::Entity;
 
 use glam::{Vec2, Vec3};
 use std::any::Any;
 
 const WEIGHT_DIST: f32 = 5.0;
+const MAP_SIZE: usize = DIM * DIM;
 
 #[derive(Debug)]
 pub struct HeightMap {
-	points: Vec<f32>,
+	points: Map<MAP_SIZE>,
 }
 
 impl HeightMap {
@@ -16,17 +18,17 @@ impl HeightMap {
 		HeightMap { points: map }
 	}
 
-	pub fn height_points(&self) -> &Vec<f32> {
+	pub fn height_points(&self) -> &Map<MAP_SIZE> {
 		&self.points
 	}
 
 	fn add_border_zero(poi: &mut Vec<Vec3>) {
-		let max_val = (super::DIM - 1) as f32;
+		let max_val = (DIM - 1) as f32;
 		poi.push(Vec3::new(0.0, 0.0, 0.0));
 		poi.push(Vec3::new(0.0, max_val, 0.0));
 		poi.push(Vec3::new(max_val, 0.0, 0.0));
 		poi.push(Vec3::new(max_val, max_val, 0.0));
-		for i in 1..(super::DIM - 1) {
+		for i in 1..(DIM - 1) {
 			let variant = i as f32;
 			poi.push(Vec3::new(variant, 0.0, 0.0));
 			poi.push(Vec3::new(0.0, variant, 0.0));
@@ -48,17 +50,17 @@ impl HeightMap {
 		return top / bot;
 	}
 
-	fn poi_to_map(mut poi: Vec<Vec3>) -> Vec<f32> {
+	fn poi_to_map(mut poi: Vec<Vec3>) -> [f32; MAP_SIZE] {
 		HeightMap::add_border_zero(&mut poi);
-		let mut map = vec![0.0; super::DIM * super::DIM];
-		for i in 0..super::DIM {
+		let mut map = [0.0; MAP_SIZE];
+		for i in 0..DIM {
 			let x = i as f32;
-			for j in 0..super::DIM {
+			for j in 0..DIM {
 				let y = j as f32;
 				if let Some(point) = poi.iter().find(|pt| pt.x == x && pt.y == y) {
-					map[i + j * super::DIM] = point.z
+					map[i + j * DIM] = point.z
 				} else {
-					map[i + j * super::DIM] = HeightMap::idw(Vec2::new(x, y), &poi);
+					map[i + j * DIM] = HeightMap::idw(Vec2::new(x, y), &poi);
 				}
 			}
 		}

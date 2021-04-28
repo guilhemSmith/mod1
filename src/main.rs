@@ -37,8 +37,12 @@ fn main() {
         Vec3::new(60.0, 60.0, 30.0),
     ];
     let terrain = Box::new(HeightMap::new(map));
-    let terrain_mesh = Box::new(Mesh::new("terrain", terrain.height_points(), algo::DIM));
-    entities.insert(terrain);
+    let terrain_mesh = Box::new(Mesh::new(
+        "terrain",
+        &Vec::from(terrain.height_points().clone()),
+        algo::DIM,
+    ));
+    let terrain_id = entities.insert(terrain);
     entities.insert(terrain_mesh);
 
     renderer.load_shader("water");
@@ -48,7 +52,7 @@ fn main() {
         algo::DIM,
     ));
     let water_id = entities.insert(water_mesh);
-    let water = algo::Water::new(water_id);
+    let water = algo::Water::new(water_id, terrain_id);
     entities.insert(Box::new(water));
     let proxy = event_loop.create_proxy();
     event_loop.run(engine::core_loop(renderer, entities, proxy));
