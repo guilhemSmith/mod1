@@ -27,7 +27,13 @@ impl Entity for Water {
 		}
 		if let Some(entity) = store.get_mut(self.mesh_id) {
 			if let Some(mesh) = entity.as_any().downcast_ref::<Mesh>() {
-				mesh.update_vertices(&self.points);
+				mesh.update_vertices(|data| {
+					for i in 0..(data.len() / 3) as usize {
+						let x = data[i * 3] as usize;
+						let y = data[i * 3 + 2] as usize;
+						data[i * 3 + 1] = self.points[x + y * super::DIM];
+					}
+				});
 			}
 		}
 	}

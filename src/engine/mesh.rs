@@ -94,16 +94,13 @@ impl Mesh {
 		return vertices;
 	}
 
-	pub fn update_vertices(&self, new_points: &Vec<f32>) {
-		let new_vert: Vec<f32> = Mesh::gen_vertices(100, new_points);
+	pub fn update_vertices(&self, update: impl Fn(&mut [f32])) {
 		unsafe {
 			gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
 			let data_ptr = gl::MapBuffer(gl::ARRAY_BUFFER, gl::WRITE_ONLY) as *mut f32;
 			let data_slice = std::ptr::slice_from_raw_parts_mut(data_ptr, self.count as usize);
 			let data_ref = &mut *data_slice;
-			for i in 0..(self.count / 3) as usize {
-				data_ref[i * 3 + 1] = new_vert[i * 3 + 1];
-			}
+			update(data_ref);
 			gl::UnmapBuffer(gl::ARRAY_BUFFER);
 		}
 	}
