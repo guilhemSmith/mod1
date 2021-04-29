@@ -6,6 +6,7 @@ use std::any::Any;
 
 const WEIGHT_DIST: f32 = 5.0;
 const MAP_SIZE: usize = DIM * DIM;
+const MAP_SCALE: f32 = 1.0;
 
 #[derive(Debug)]
 pub struct HeightMap {
@@ -14,7 +15,8 @@ pub struct HeightMap {
 
 impl HeightMap {
 	pub fn new(poi: Vec<Vec3>) -> Self {
-		let map = HeightMap::poi_to_map(poi);
+		let scaled = poi.into_iter().map(|pt| pt * MAP_SCALE).collect();
+		let map = HeightMap::poi_to_map(scaled);
 		HeightMap { points: map }
 	}
 

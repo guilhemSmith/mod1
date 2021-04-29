@@ -19,7 +19,8 @@ pub struct Mesh {
 impl Mesh {
 	pub fn new(shader_name: &str, points: &Vec<f32>, dim: usize) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
-		let vertices_flat: Vec<f32> = Mesh::gen_vertices(100, points);
+		let mesh_dim = (points.len() as f32).sqrt();
+		let vertices_flat: Vec<f32> = Mesh::gen_vertices(mesh_dim as usize, points);
 		let count = vertices_flat.len() as i32;
 
 		let (mut vbo, mut vao) = (0, 0);
