@@ -42,13 +42,14 @@ impl Water {
 					for j in 0..DIM {
 						if self.depths[i + 1 + j * DIM] > ZERO_DEPTH
 							|| self.depths[i + j * DIM] > ZERO_DEPTH
-							|| true
 						{
 							let height_delta = (self.depths[i + 1 + j * DIM]
 								+ terrain.height_points()[i + 1 + j * DIM])
 								- (self.depths[i + j * DIM] + terrain.height_points()[i + j * DIM]);
 							self.pipes_x[i + j * (DIM - 1)] += flow_acceleration(height_delta);
 							self.pipes_x[i + j * (DIM - 1)] *= flow_decceleration(height_delta);
+						} else {
+							self.pipes_x[i + j * (DIM - 1)] = 0.0;
 						}
 					}
 				}
@@ -56,13 +57,14 @@ impl Water {
 					for j in 0..(DIM - 1) {
 						if self.depths[i + (j + 1) * DIM] > ZERO_DEPTH
 							|| self.depths[i + j * DIM] > ZERO_DEPTH
-							|| true
 						{
 							let height_delta = self.depths[i + (j + 1) * DIM]
 								+ terrain.height_points()[i + (j + 1) * DIM]
 								- (self.depths[i + j * DIM] + terrain.height_points()[i + j * DIM]);
 							self.pipes_y[i + j * DIM] += flow_acceleration(height_delta);
 							self.pipes_y[i + j * DIM] *= flow_decceleration(height_delta);
+						} else {
+							self.pipes_y[i + j * DIM] = 0.0;
 						}
 					}
 				}
@@ -70,81 +72,93 @@ impl Water {
 		}
 	}
 
-	fn capped_flow(&mut self, delta_time: f32) {
-		for i in 0..DIM {
-			for j in 0..DIM {
-				let mut flow_in = 0.0;
-				let mut flow_out = 0.0;
-				let mut split_flow = |flow: f32| {
-					let flow = flow;
-					if flow > 0.0 {
-						flow_out += flow;
-					} else if flow < 0.0 {
-						flow_in -= flow;
-					}
-				};
-				if i < DIM - 1 {
-					split_flow(-self.pipes_x[i + j * (DIM - 1)]);
+	fn cap_flow(
+		&mut self,
+		i: usize,
+		j: usize,
+		to_check: &mut Vec<(usize, usize)>,
+		delta_time: f32,
+	) {
+		let (flow_in, flow_out) = self.compute_flows(i, j);
+		let flow_sum = flow_in - flow_out;
+		let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
+		if self.depths[i + j * DIM] + delta_depth < 0.0 {
+			let capped_out =
+				flow_in + (self.depths[i + j * DIM] * (GRID_STEP * GRID_STEP)) / delta_time;
+			let mut ratio = capped_out / flow_out;
+			if ratio.abs() >= 1.0 {
+				ratio = 0.0;
+			}
+			if i < DIM - 1 && -self.pipes_x[i + j * (DIM - 1)] > 0.0 {
+				self.pipes_x[i + j * (DIM - 1)] *= ratio;
+				if !to_check.contains(&(i + 1, j)) {
+					to_check.push((i + 1, j));
 				}
-				if i > 0 {
-					split_flow(self.pipes_x[i - 1 + j * (DIM - 1)]);
+			}
+			if i > 0 && self.pipes_x[i - 1 + j * (DIM - 1)] > 0.0 {
+				self.pipes_x[i - 1 + j * (DIM - 1)] *= ratio;
+				if !to_check.contains(&(i - 1, j)) {
+					to_check.push((i - 1, j));
 				}
-				if j < DIM - 1 {
-					split_flow(-self.pipes_y[i + j * DIM]);
+			}
+			if j < DIM - 1 && -self.pipes_y[i + j * DIM] > 0.0 {
+				self.pipes_y[i + j * DIM] *= ratio;
+				if !to_check.contains(&(i, j + 1)) {
+					to_check.push((i, j + 1));
 				}
-				if j > 0 {
-					split_flow(self.pipes_y[i + (j - 1) * DIM]);
-				}
-				let flow_sum = flow_in - flow_out;
-
-				let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
-				if self.depths[i + j * DIM] + delta_depth < 0.0 {
-					let capped_out =
-						flow_in + (self.depths[i + j * DIM] * (GRID_STEP * GRID_STEP)) / delta_time;
-					let ratio = capped_out / flow_out;
-					if i < DIM - 1 && -self.pipes_x[i + j * (DIM - 1)] > 0.0 {
-						self.pipes_x[i + j * (DIM - 1)] *= ratio;
-					}
-					if i > 0 && self.pipes_x[i - 1 + j * (DIM - 1)] > 0.0 {
-						self.pipes_x[i - 1 + j * (DIM - 1)] *= ratio;
-					}
-					if j < DIM - 1 && -self.pipes_y[i + j * DIM] > 0.0 {
-						self.pipes_y[i + j * DIM] *= ratio;
-					}
-					if j > 0 && self.pipes_y[i + (j - 1) * DIM] > 0.0 {
-						self.pipes_y[i + (j - 1) * DIM] *= ratio;
-					}
+			}
+			if j > 0 && self.pipes_y[i + (j - 1) * DIM] > 0.0 {
+				self.pipes_y[i + (j - 1) * DIM] *= ratio;
+				if !to_check.contains(&(i, j - 1)) {
+					to_check.push((i, j - 1));
 				}
 			}
 		}
+	}
+
+	fn limit_flows(&mut self, delta_time: f32) {
+		let mut to_check = Vec::new();
+		for i in 0..DIM {
+			for j in 0..DIM {
+				self.cap_flow(i, j, &mut to_check, delta_time);
+			}
+		}
+		while let Some((i, j)) = to_check.pop() {
+			self.cap_flow(i, j, &mut to_check, delta_time);
+		}
+	}
+
+	fn compute_flows(&self, i: usize, j: usize) -> (f32, f32) {
+		let mut flow_in = 0.0;
+		let mut flow_out = 0.0;
+		let mut split_flow = |flow: f32| {
+			let flow = flow;
+			if flow > 0.0 {
+				flow_out += flow;
+			} else if flow < 0.0 {
+				flow_in -= flow;
+			}
+		};
+		if i < DIM - 1 {
+			split_flow(-self.pipes_x[i + j * (DIM - 1)]);
+		}
+		if i > 0 {
+			split_flow(self.pipes_x[i - 1 + j * (DIM - 1)]);
+		}
+		if j < DIM - 1 {
+			split_flow(-self.pipes_y[i + j * DIM]);
+		}
+		if j > 0 {
+			split_flow(self.pipes_y[i + (j - 1) * DIM]);
+		}
+		return (flow_in, flow_out);
 	}
 
 	fn update_depths(&mut self, delta_time: f32) {
 		let mut depth_sum = 0.0;
 		for i in 0..DIM {
 			for j in 0..DIM {
-				let mut flow_in = 0.0;
-				let mut flow_out = 0.0;
-				let mut split_flow = |flow: f32| {
-					let flow = flow;
-					if flow > 0.0 {
-						flow_out += flow;
-					} else if flow < 0.0 {
-						flow_in -= flow;
-					}
-				};
-				if i < DIM - 1 {
-					split_flow(-self.pipes_x[i + j * (DIM - 1)]);
-				}
-				if i > 0 {
-					split_flow(self.pipes_x[i - 1 + j * (DIM - 1)]);
-				}
-				if j < DIM - 1 {
-					split_flow(-self.pipes_y[i + j * DIM]);
-				}
-				if j > 0 {
-					split_flow(self.pipes_y[i + (j - 1) * DIM]);
-				}
+				let (flow_in, flow_out) = self.compute_flows(i, j);
 				let flow_sum = flow_in - flow_out;
 
 				let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
@@ -171,20 +185,7 @@ impl Water {
 									data[i * 3 + 1] = self.depths[x + y * DIM]
 										+ terrain.height_points()[x + y * DIM];
 								} else {
-									if (x > 0 && self.depths[x - 1 + y * DIM] > ZERO_DEPTH)
-										|| (x < DIM - 1
-											&& self.depths[x + 1 + y * DIM] > ZERO_DEPTH)
-										|| (y > 0 && self.depths[x + (y - 1) * DIM] > ZERO_DEPTH)
-										|| (y < DIM - 1
-											&& self.depths[x + (y + 1) * DIM] > ZERO_DEPTH)
-									{
-										data[i * 3 + 1] =
-											terrain.height_points()[x + y * DIM] + ZERO_DEPTH;
-									} else {
-										data[i * 3 + 1] =
-											terrain.height_points()[x + y * DIM] - ZERO_DEPTH;
-									}
-									// data[i * 3 + 1] = terrain.height_points()[x + y * DIM] - 0.1;
+									data[i * 3 + 1] = terrain.height_points()[x + y * DIM] - 0.1;
 								}
 							}
 						});
@@ -207,7 +208,7 @@ impl Entity for Water {
 			}
 		}
 		self.update_pipes_flow(delta, store);
-		self.capped_flow(delta);
+		self.limit_flows(delta);
 		self.update_depths(delta);
 		self.update_mesh(store);
 	}

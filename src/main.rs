@@ -26,15 +26,15 @@ fn main() {
 
     renderer.load_shader("terrain");
     let map = vec![
-        // Vec3::new(40.0, 40.0, 30.0),
-        // Vec3::new(40.0, 50.0, 30.0),
-        // Vec3::new(40.0, 60.0, 30.0),
-        // Vec3::new(50.0, 60.0, 30.0),
-        // Vec3::new(50.0, 50.0, 10.0),
-        // Vec3::new(50.0, 40.0, 30.0),
-        // Vec3::new(60.0, 40.0, 30.0),
-        // Vec3::new(60.0, 50.0, 30.0),
-        // Vec3::new(60.0, 60.0, 30.0),
+        Vec3::new(40.0, 40.0, 10.0),
+        Vec3::new(40.0, 50.0, 10.0),
+        Vec3::new(40.0, 60.0, 10.0),
+        Vec3::new(50.0, 60.0, 10.0),
+        Vec3::new(50.0, 50.0, 0.0),
+        Vec3::new(50.0, 40.0, 10.0),
+        Vec3::new(60.0, 40.0, 10.0),
+        Vec3::new(60.0, 50.0, 10.0),
+        Vec3::new(60.0, 60.0, 10.0),
     ];
     let terrain = Box::new(HeightMap::new(map));
     let terrain_mesh = Box::new(Mesh::new(
