@@ -187,7 +187,57 @@ impl Water {
 									data[i * 3 + 1] = self.depths[x + y * DIM]
 										+ terrain.height_points()[x + y * DIM];
 								} else {
-									data[i * 3 + 1] = terrain.height_points()[x + y * DIM] - 0.1;
+									let check_neighbor = |n_index: usize, sum: &mut f32| {
+										if self.depths[n_index] > ZERO_DEPTH
+											&& terrain.height_points()[x + y * DIM]
+												> terrain.height_points()[n_index]
+										{
+											*sum += terrain.height_points()[n_index]
+												+ self.depths[n_index];
+											return 1.0;
+										}
+										return 0.0;
+									};
+									let mut n_count = 0.0;
+									let mut n_sum = 0.0;
+									if x > 0 {
+										n_count += check_neighbor(x - 1 + y * DIM, &mut n_sum);
+									}
+
+									if x < DIM - 1 {
+										n_count += check_neighbor(x + 1 + y * DIM, &mut n_sum);
+									}
+
+									if y > 0 {
+										n_count += check_neighbor(x + (y - 1) * DIM, &mut n_sum);
+										if x > 0 {
+											n_count +=
+												check_neighbor(x - 1 + (y - 1) * DIM, &mut n_sum);
+										}
+										if x < DIM - 1 {
+											n_count +=
+												check_neighbor(x + 1 + (y - 1) * DIM, &mut n_sum);
+										}
+									}
+
+									if y < DIM - 1 {
+										n_count += check_neighbor(x + (y + 1) * DIM, &mut n_sum);
+										if x > 0 {
+											n_count +=
+												check_neighbor(x - 1 + (y + 1) * DIM, &mut n_sum);
+										}
+										if x < DIM - 1 {
+											n_count +=
+												check_neighbor(x + 1 + (y + 1) * DIM, &mut n_sum);
+										}
+									}
+
+									if n_count == 0.0 {
+										data[i * 3 + 1] =
+											terrain.height_points()[x + y * DIM] / 2.0 - 0.1;
+									} else {
+										data[i * 3 + 1] = n_sum / n_count;
+									}
 								}
 							}
 						});
