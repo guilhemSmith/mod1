@@ -44,24 +44,36 @@ impl Water {
 
 				for i in 0..(DIM - 1) {
 					for j in 0..DIM {
-						self.pipes_x[i + j * (DIM - 1)] += flow_acceleration(
-							self.depths[i + j * DIM],
-							self.depths[i + 1 + j * DIM],
-							terrain.height_points()[i + j * DIM],
-							terrain.height_points()[i + 1 + j * DIM],
-						);
-						self.pipes_x[i + j * (DIM - 1)] *= flow_decceleration;
+						if self.depths[i + 1 + j * DIM] > ZERO_DEPTH
+							|| self.depths[i + j * DIM] > ZERO_DEPTH
+						{
+							self.pipes_x[i + j * (DIM - 1)] += flow_acceleration(
+								self.depths[i + j * DIM],
+								self.depths[i + 1 + j * DIM],
+								terrain.height_points()[i + j * DIM],
+								terrain.height_points()[i + 1 + j * DIM],
+							);
+							self.pipes_x[i + j * (DIM - 1)] *= flow_decceleration;
+						} else {
+							self.pipes_x[i + j * (DIM - 1)] = 0.0;
+						}
 					}
 				}
 				for i in 0..DIM {
 					for j in 0..(DIM - 1) {
-						self.pipes_y[i + j * DIM] += flow_acceleration(
-							self.depths[i + j * DIM],
-							self.depths[i + (j + 1) * DIM],
-							terrain.height_points()[i + j * DIM],
-							terrain.height_points()[i + (j + 1) * DIM],
-						);
-						self.pipes_y[i + j * DIM] *= flow_decceleration;
+						if self.depths[i + (j + 1) * DIM] > ZERO_DEPTH
+							|| self.depths[i + j * DIM] > ZERO_DEPTH
+						{
+							self.pipes_y[i + j * DIM] += flow_acceleration(
+								self.depths[i + j * DIM],
+								self.depths[i + (j + 1) * DIM],
+								terrain.height_points()[i + j * DIM],
+								terrain.height_points()[i + (j + 1) * DIM],
+							);
+							self.pipes_y[i + j * DIM] *= flow_decceleration;
+						} else {
+							self.pipes_y[i + j * DIM] = 0.0;
+						}
 					}
 				}
 			}
