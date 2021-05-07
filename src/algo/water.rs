@@ -206,9 +206,14 @@ impl Entity for Water {
 	fn update(&mut self, delta: f32, inputs: &Inputs, store: &EntityStore) {
 		if inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
-				self.depths[i] += 1.0;
+				self.depths[i] += 1.5;
 			}
 		}
+
+		if inputs.is_pressed(Inputs::K_R) {
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
+		}
+
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
 				if inputs.is_pressed(Inputs::K_T) {
