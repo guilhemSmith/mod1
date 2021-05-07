@@ -58,6 +58,14 @@ impl Inputs {
 	pub const K_LEFT: u32 = 105;
 	#[allow(dead_code)]
 	pub const K_RIGHT: u32 = 106;
+	#[allow(dead_code)]
+	pub const K_T: u32 = 20;
+	#[allow(dead_code)]
+	pub const K_R: u32 = 19;
+	#[allow(dead_code)]
+	pub const K_W: u32 = 17;
+	#[allow(dead_code)]
+	pub const K_D: u32 = 32;
 
 	pub fn new() -> Self {
 		Inputs {

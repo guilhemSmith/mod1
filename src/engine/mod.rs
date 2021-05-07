@@ -47,7 +47,7 @@ pub fn core_loop(
 			},
 			Event::RedrawRequested(_) => {
 				let delta = time::Instant::now().duration_since(last_draw).as_micros();
-				entities.update(delta as f32 / 1000000.0, &inputs);
+				entities.update((delta % 100000) as f32 / 1000000.0, &inputs);
 				inputs.update();
 				last_draw = time::Instant::now();
 				if !entities.render(&mut renderer) {

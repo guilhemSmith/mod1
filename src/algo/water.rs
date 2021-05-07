@@ -151,30 +151,15 @@ impl Water {
 	}
 
 	fn update_depths(&mut self, delta_time: f32) {
-		let mut depth_sum = 0.0;
 		for i in 0..DIM {
 			for j in 0..DIM {
 				let (flow_in, flow_out) = self.compute_flows(i, j);
 				let flow_sum = flow_in - flow_out;
 
 				let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
-				// if delta_depth.abs() > 5.0 {
-				// 	println!(
-				// 		"supsicious depth delta: {}, flows: {}, {}",
-				// 		delta_depth, flow_in, flow_out
-				// 	);
-				// }
 				self.depths[i + j * DIM] += delta_depth;
-				if self.depths[i + j * DIM] < -ZERO_DEPTH {
-					println!("negative depth: {}", self.depths[i + j * DIM]);
-				}
-				depth_sum += self.depths[i + j * DIM];
-				if !self.depths[i + j * DIM].is_finite() {
-					println!("invalid depth: {}", self.depths[i + j * DIM]);
-				}
 			}
 		}
-		println!("depth sum: {}", depth_sum);
 	}
 
 	fn update_mesh(&self, store: &EntityStore) {
@@ -206,10 +191,48 @@ impl Entity for Water {
 		self
 	}
 
-	fn update(&mut self, delta: f32, _inputs: &Inputs, store: &EntityStore) {
-		if _inputs.is_pressed(Inputs::K_ENTER) {
+	fn update(&mut self, delta: f32, inputs: &Inputs, store: &EntityStore) {
+		if inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
 				self.depths[i] += 1.0;
+			}
+		}
+		if let Some(ent_terrain) = store.get(self.terrain_id) {
+			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
+				if inputs.is_pressed(Inputs::K_T) {
+					for i in 0..DIM {
+						for j in 0..DIM {
+							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH {
+								self.depths[i + j * DIM] += 0.1;
+							}
+						}
+					}
+				}
+
+				if inputs.is_pressed(Inputs::K_D) {
+					for i in 0..DIM {
+						for j in 0..DIM {
+							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH {
+								self.depths[i + j * DIM] -= 0.1;
+								if self.depths[i + j * DIM] <= ZERO_DEPTH {
+									self.depths[i + j * DIM] = 0.0;
+									if i < DIM - 1 && self.pipes_x[i + j * (DIM - 1)] < 0.0 {
+										self.pipes_x[i + j * (DIM - 1)] = 0.0;
+									}
+									if i > 0 && self.pipes_x[i - 1 + j * (DIM - 1)] > 0.0 {
+										self.pipes_x[i - 1 + j * (DIM - 1)] = 0.0;
+									}
+									if j < DIM - 1 && self.pipes_y[i + j * DIM] < 0.0 {
+										self.pipes_y[i + j * DIM] = 0.0;
+									}
+									if j > 0 && self.pipes_y[i + (j - 1) * DIM] > 0.0 {
+										self.pipes_y[i + (j - 1) * DIM] = 0.0;
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		self.update_pipes_flow(delta, store);
