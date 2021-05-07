@@ -35,37 +35,33 @@ impl Water {
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
 				let flow_acceleration =
-					|height_delta: f32| 0.1 * G / GRID_STEP * height_delta * delta_time;
-				let flow_decceleration = |_height_delta: f32| 1.0 - delta_time * GRID_STEP * 1.0;
+					|depth: f32, depth_next: f32, terrain: f32, terrain_next: f32| {
+						let height_delta = (depth_next + terrain_next) - (depth + terrain);
+						let upwind_depth = f32::min(f32::max(depth, depth_next), 5.0);
+						return upwind_depth * G * height_delta * delta_time;
+					};
+				let flow_decceleration = f32::min(1.0 - delta_time * 1.5, 1.0);
 
 				for i in 0..(DIM - 1) {
 					for j in 0..DIM {
-						if self.depths[i + 1 + j * DIM] > ZERO_DEPTH
-							|| self.depths[i + j * DIM] > ZERO_DEPTH
-						{
-							let height_delta = (self.depths[i + 1 + j * DIM]
-								+ terrain.height_points()[i + 1 + j * DIM])
-								- (self.depths[i + j * DIM] + terrain.height_points()[i + j * DIM]);
-							self.pipes_x[i + j * (DIM - 1)] += flow_acceleration(height_delta);
-							self.pipes_x[i + j * (DIM - 1)] *= flow_decceleration(height_delta);
-						} else {
-							self.pipes_x[i + j * (DIM - 1)] = 0.0;
-						}
+						self.pipes_x[i + j * (DIM - 1)] += flow_acceleration(
+							self.depths[i + j * DIM],
+							self.depths[i + 1 + j * DIM],
+							terrain.height_points()[i + j * DIM],
+							terrain.height_points()[i + 1 + j * DIM],
+						);
+						self.pipes_x[i + j * (DIM - 1)] *= flow_decceleration;
 					}
 				}
 				for i in 0..DIM {
 					for j in 0..(DIM - 1) {
-						if self.depths[i + (j + 1) * DIM] > ZERO_DEPTH
-							|| self.depths[i + j * DIM] > ZERO_DEPTH
-						{
-							let height_delta = self.depths[i + (j + 1) * DIM]
-								+ terrain.height_points()[i + (j + 1) * DIM]
-								- (self.depths[i + j * DIM] + terrain.height_points()[i + j * DIM]);
-							self.pipes_y[i + j * DIM] += flow_acceleration(height_delta);
-							self.pipes_y[i + j * DIM] *= flow_decceleration(height_delta);
-						} else {
-							self.pipes_y[i + j * DIM] = 0.0;
-						}
+						self.pipes_y[i + j * DIM] += flow_acceleration(
+							self.depths[i + j * DIM],
+							self.depths[i + (j + 1) * DIM],
+							terrain.height_points()[i + j * DIM],
+							terrain.height_points()[i + (j + 1) * DIM],
+						);
+						self.pipes_y[i + j * DIM] *= flow_decceleration;
 					}
 				}
 			}
@@ -162,11 +158,20 @@ impl Water {
 				let flow_sum = flow_in - flow_out;
 
 				let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
+				// if delta_depth.abs() > 5.0 {
+				// 	println!(
+				// 		"supsicious depth delta: {}, flows: {}, {}",
+				// 		delta_depth, flow_in, flow_out
+				// 	);
+				// }
 				self.depths[i + j * DIM] += delta_depth;
 				if self.depths[i + j * DIM] < -ZERO_DEPTH {
 					println!("negative depth: {}", self.depths[i + j * DIM]);
 				}
 				depth_sum += self.depths[i + j * DIM];
+				if !self.depths[i + j * DIM].is_finite() {
+					println!("invalid depth: {}", self.depths[i + j * DIM]);
+				}
 			}
 		}
 		println!("depth sum: {}", depth_sum);
@@ -203,7 +208,7 @@ impl Entity for Water {
 
 	fn update(&mut self, delta: f32, _inputs: &Inputs, store: &EntityStore) {
 		if _inputs.is_pressed(Inputs::K_ENTER) {
-			for i in (DIM / 4)..(3 * DIM / 4) {
+			for i in 0..DIM {
 				self.depths[i] += 1.0;
 			}
 		}
