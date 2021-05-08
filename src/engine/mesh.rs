@@ -1,6 +1,7 @@
 use super::{Camera, EngineError, Entity, Renderable, Renderer};
 use crate::{engine_error, map_engine_error};
 use gl::types::*;
+use glam::Vec3;
 use std::any::Any;
 use std::ffi::CString;
 use std::mem;
@@ -52,8 +53,16 @@ impl Mesh {
 				3,
 				gl::FLOAT,
 				gl::FALSE,
-				3 * mem::size_of::<GLfloat>() as GLsizei,
+				6 * mem::size_of::<GLfloat>() as GLsizei,
 				ptr::null(),
+			);
+			gl::VertexAttribPointer(
+				1,
+				3,
+				gl::FLOAT,
+				gl::FALSE,
+				6 * mem::size_of::<GLfloat>() as GLsizei,
+				(3 * mem::size_of::<GLfloat>()) as *mut _,
 			);
 			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
 			gl::BindVertexArray(0);
@@ -71,16 +80,13 @@ impl Mesh {
 
 	pub fn gen_vertices(dim: usize, height_pts: &Vec<f32>) -> Vec<f32> {
 		let mut vertices = Vec::new();
-		let one = 1.0;
 		for i in 0..dim {
-			let x = i as f32;
 			for j in 0..dim {
-				let y = j as f32;
 				if i + 1 < dim && j + 1 < dim {
-					let top_left = vec![x, height_pts[i + j * dim], y];
-					let top_right = vec![x + one, height_pts[i + 1 + j * dim], y];
-					let bot_left = vec![x, height_pts[i + (j + 1) * dim], y + one];
-					let bot_right = vec![x + one, height_pts[i + 1 + (j + 1) * dim], y + one];
+					let top_left = compute_vertice(i, j, dim, height_pts);
+					let top_right = compute_vertice(i + 1, j, dim, height_pts);
+					let bot_left = compute_vertice(i, j + 1, dim, height_pts);
+					let bot_right = compute_vertice(i + 1, j + 1, dim, height_pts);
 
 					// first triangle
 					vertices.extend_from_slice(&top_left);
@@ -90,27 +96,6 @@ impl Mesh {
 					vertices.extend_from_slice(&top_left);
 					vertices.extend_from_slice(&bot_left);
 					vertices.extend_from_slice(&bot_right);
-
-					// old code supposed to reduce bad geometry
-					// if (top_left[1] - bot_right[1]).abs() > (top_right[1] - bot_left[1]).abs() {
-					// 	// first triangle
-					// 	vertices.extend_from_slice(&top_left);
-					// 	vertices.extend_from_slice(&top_right);
-					// 	vertices.extend_from_slice(&bot_right);
-					// 	// second triangle
-					// 	vertices.extend_from_slice(&top_left);
-					// 	vertices.extend_from_slice(&bot_left);
-					// 	vertices.extend_from_slice(&bot_right);
-					// } else {
-					// 	// first triangle
-					// 	vertices.extend_from_slice(&top_right);
-					// 	vertices.extend_from_slice(&top_left);
-					// 	vertices.extend_from_slice(&bot_left);
-					// 	// second triangle
-					// 	vertices.extend_from_slice(&top_right);
-					// 	vertices.extend_from_slice(&bot_right);
-					// 	vertices.extend_from_slice(&bot_left);
-					// }
 				}
 			}
 		}
@@ -127,6 +112,50 @@ impl Mesh {
 			gl::UnmapBuffer(gl::ARRAY_BUFFER);
 		}
 	}
+}
+
+fn compute_vertice(i: usize, j: usize, dim: usize, height_pts: &Vec<f32>) -> [f32; 6] {
+	let mut vertice = [0.0; 6];
+	let (x, y) = (i as f32, j as f32);
+
+	// coords
+	vertice[0] = x;
+	vertice[1] = height_pts[i + j * dim];
+	vertice[2] = y;
+
+	// tanngent
+	let prev_x = if i > 0 {
+		Vec3::new(x - 1.0, y, height_pts[i - 1 + j * dim])
+	} else {
+		Vec3::new(x, y, height_pts[i + j * dim])
+	};
+	let next_x = if i < dim - 1 {
+		Vec3::new(x + 1.0, y, height_pts[i + 1 + j * dim])
+	} else {
+		Vec3::new(x, y, height_pts[i + j * dim])
+	};
+	let tangent = next_x - prev_x;
+
+	// binormal
+	let prev_y = if j > 0 {
+		Vec3::new(x - 1.0, y, height_pts[i + (j - 1) * dim])
+	} else {
+		Vec3::new(x, y, height_pts[i + j * dim])
+	};
+	let next_y = if j < dim - 1 {
+		Vec3::new(x + 1.0, y, height_pts[i + (j + 1) * dim])
+	} else {
+		Vec3::new(x, y, height_pts[i + j * dim])
+	};
+	let binormal = next_y - prev_y;
+
+	// normal
+	let normal = tangent.cross(binormal);
+	vertice[3] = normal.x;
+	vertice[4] = normal.z;
+	vertice[5] = normal.y;
+
+	return vertice;
 }
 
 impl Renderable for Mesh {

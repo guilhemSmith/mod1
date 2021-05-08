@@ -180,11 +180,11 @@ impl Water {
 				if let Some(ent_mesh) = store.get_mut(self.mesh_id) {
 					if let Some(mesh) = ent_mesh.as_any().downcast_ref::<Mesh>() {
 						mesh.update_vertices(|data| {
-							for i in 0..(data.len() / 3) as usize {
-								let x = data[i * 3] as usize;
-								let y = data[i * 3 + 2] as usize;
+							for i in 0..(data.len() / 6) as usize {
+								let x = data[i * 6] as usize;
+								let y = data[i * 6 + 2] as usize;
 								if self.depths[x + y * DIM] > ZERO_DEPTH {
-									data[i * 3 + 1] = self.depths[x + y * DIM]
+									data[i * 6 + 1] = self.depths[x + y * DIM]
 										+ terrain.height_points()[x + y * DIM];
 								} else {
 									let check_neighbor = |n_index: usize, sum: &mut f32| {
@@ -233,10 +233,10 @@ impl Water {
 									}
 
 									if n_count == 0.0 {
-										data[i * 3 + 1] =
+										data[i * 6 + 1] =
 											terrain.height_points()[x + y * DIM] / 2.0 - 0.1;
 									} else {
-										data[i * 3 + 1] = n_sum / n_count;
+										data[i * 6 + 1] = n_sum / n_count;
 									}
 								}
 							}
