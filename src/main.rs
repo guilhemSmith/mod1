@@ -41,6 +41,8 @@ fn main() {
         "terrain",
         &Vec::from(terrain.height_points().clone()),
         algo::DIM,
+        true,
+        true,
     ));
     let terrain_id = entities.insert(terrain);
     entities.insert(terrain_mesh);
@@ -50,6 +52,8 @@ fn main() {
         "water",
         &vec![-0.1; algo::DIM * algo::DIM],
         algo::DIM,
+        false,
+        false,
     ));
     let water_id = entities.insert(water_mesh);
     let water = algo::Water::new(water_id, terrain_id);

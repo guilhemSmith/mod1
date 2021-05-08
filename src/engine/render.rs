@@ -14,6 +14,9 @@ const DEFAULT_HEIGHT: u32 = 600;
 const DEFAULT_TITLE: String = String::new();
 
 pub trait Renderable: Debug {
+	fn is_opaque(&self) -> bool {
+		true
+	}
 	fn draw(&self, renderer: &Renderer, camera: &Camera) -> Result<(), EngineError>;
 }
 
@@ -77,6 +80,8 @@ impl RendererBuilder {
 		gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 		unsafe {
 			gl::Enable(gl::DEPTH_TEST);
+			gl::Enable(gl::BLEND);
+			gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 		}
 		Ok(Renderer {
 			gl_window,

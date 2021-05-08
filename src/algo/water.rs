@@ -261,7 +261,11 @@ impl Entity for Water {
 		}
 
 		if inputs.is_pressed(Inputs::K_R) {
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
 		}
 
 		if let Some(ent_terrain) = store.get(self.terrain_id) {

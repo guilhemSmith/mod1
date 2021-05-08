@@ -14,10 +14,17 @@ pub struct Mesh {
 	shader_name: String,
 	count: i32,
 	offset: f32,
+	opaque: bool,
 }
 
 impl Mesh {
-	pub fn new(shader_name: &str, points: &Vec<f32>, dim: usize) -> Self {
+	pub fn new(
+		shader_name: &str,
+		points: &Vec<f32>,
+		dim: usize,
+		opaque: bool,
+		static_data: bool,
+	) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
 		let mesh_dim = (points.len() as f32).sqrt();
 		let vertices_flat: Vec<f32> = Mesh::gen_vertices(mesh_dim as usize, points);
@@ -33,7 +40,11 @@ impl Mesh {
 				gl::ARRAY_BUFFER,
 				(vertices_flat.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
 				&vertices_flat[0] as *const f32 as *const c_void,
-				gl::STREAM_DRAW,
+				if static_data {
+					gl::STATIC_DRAW
+				} else {
+					gl::STREAM_DRAW
+				},
 			);
 			gl::EnableVertexAttribArray(0);
 			gl::VertexAttribPointer(
@@ -54,6 +65,7 @@ impl Mesh {
 			shader_name: String::from(shader_name),
 			count,
 			offset,
+			opaque,
 		}
 	}
 
@@ -118,6 +130,10 @@ impl Mesh {
 }
 
 impl Renderable for Mesh {
+	fn is_opaque(&self) -> bool {
+		self.opaque
+	}
+
 	fn draw(&self, renderer: &Renderer, camera: &Camera) -> Result<(), EngineError> {
 		let shader_program = renderer.get_shader(&self.shader_name).ok_or(engine_error!(
 			ShaderFail,
