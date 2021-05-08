@@ -274,14 +274,8 @@ impl Water {
 			}
 		}
 	}
-}
 
-impl Entity for Water {
-	fn as_any(&self) -> &dyn Any {
-		self
-	}
-
-	fn update(&mut self, delta: f32, inputs: &Inputs, store: &EntityStore) {
+	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
 		if inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
 				self.depths[i] += 1.5;
@@ -289,11 +283,11 @@ impl Entity for Water {
 		}
 
 		if inputs.is_pressed(Inputs::K_R) {
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.1;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.2;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.2;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.2;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.2;
+			self.depths[rand::random::<usize>() % (DIM * DIM)] += 0.2;
 		}
 
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
@@ -334,9 +328,19 @@ impl Entity for Water {
 				}
 			}
 		}
+	}
+}
+
+impl Entity for Water {
+	fn as_any(&self) -> &dyn Any {
+		self
+	}
+
+	fn update(&mut self, delta: f32, inputs: &Inputs, store: &EntityStore) {
 		self.update_pipes_flow(delta, store);
 		self.limit_flows(delta);
 		self.update_depths(delta);
+		self.handle_inputs(inputs, store);
 		self.update_mesh(store);
 	}
 }
