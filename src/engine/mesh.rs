@@ -47,7 +47,6 @@ impl Mesh {
 					gl::STREAM_DRAW
 				},
 			);
-			gl::EnableVertexAttribArray(0);
 			gl::VertexAttribPointer(
 				0,
 				3,
@@ -56,6 +55,7 @@ impl Mesh {
 				6 * mem::size_of::<GLfloat>() as GLsizei,
 				ptr::null(),
 			);
+			gl::EnableVertexAttribArray(0);
 			gl::VertexAttribPointer(
 				1,
 				3,
@@ -64,6 +64,7 @@ impl Mesh {
 				6 * mem::size_of::<GLfloat>() as GLsizei,
 				(3 * mem::size_of::<GLfloat>()) as *mut _,
 			);
+			gl::EnableVertexAttribArray(1);
 			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
 			gl::BindVertexArray(0);
 		}
@@ -83,10 +84,10 @@ impl Mesh {
 		for i in 0..dim {
 			for j in 0..dim {
 				if i + 1 < dim && j + 1 < dim {
-					let top_left = compute_vertice(i, j, dim, height_pts);
-					let top_right = compute_vertice(i + 1, j, dim, height_pts);
-					let bot_left = compute_vertice(i, j + 1, dim, height_pts);
-					let bot_right = compute_vertice(i + 1, j + 1, dim, height_pts);
+					let top_left = Mesh::compute_vertice(i, j, dim, height_pts);
+					let top_right = Mesh::compute_vertice(i + 1, j, dim, height_pts);
+					let bot_left = Mesh::compute_vertice(i, j + 1, dim, height_pts);
+					let bot_right = Mesh::compute_vertice(i + 1, j + 1, dim, height_pts);
 
 					// first triangle
 					vertices.extend_from_slice(&top_left);
@@ -112,50 +113,45 @@ impl Mesh {
 			gl::UnmapBuffer(gl::ARRAY_BUFFER);
 		}
 	}
-}
 
-fn compute_vertice(i: usize, j: usize, dim: usize, height_pts: &Vec<f32>) -> [f32; 6] {
-	let mut vertice = [0.0; 6];
-	let (x, y) = (i as f32, j as f32);
+	fn compute_vertice(i: usize, j: usize, dim: usize, height_pts: &Vec<f32>) -> [f32; 6] {
+		let mut vertice = [0.0; 6];
+		let (x, y) = (i as f32, j as f32);
+		// coords
+		vertice[0] = x;
+		vertice[1] = height_pts[i + j * dim];
+		vertice[2] = y;
+		// normal
+		let prev_x = if i > 0 {
+			height_pts[i - 1 + j * dim]
+		} else {
+			height_pts[i + j * dim]
+		};
+		let next_x = if i < dim - 1 {
+			height_pts[i + 1 + j * dim]
+		} else {
+			height_pts[i + j * dim]
+		};
+		let prev_y = if j > 0 {
+			height_pts[i + (j - 1) * dim]
+		} else {
+			height_pts[i + j * dim]
+		};
+		let next_y = if j < dim - 1 {
+			height_pts[i + (j + 1) * dim]
+		} else {
+			height_pts[i + j * dim]
+		};
+		let normal = Mesh::normal(prev_x, next_x, prev_y, next_y);
+		vertice[3] = normal.x;
+		vertice[4] = normal.z;
+		vertice[5] = normal.y;
+		return vertice;
+	}
 
-	// coords
-	vertice[0] = x;
-	vertice[1] = height_pts[i + j * dim];
-	vertice[2] = y;
-
-	// tanngent
-	let prev_x = if i > 0 {
-		Vec3::new(x - 1.0, y, height_pts[i - 1 + j * dim])
-	} else {
-		Vec3::new(x, y, height_pts[i + j * dim])
-	};
-	let next_x = if i < dim - 1 {
-		Vec3::new(x + 1.0, y, height_pts[i + 1 + j * dim])
-	} else {
-		Vec3::new(x, y, height_pts[i + j * dim])
-	};
-	let tangent = next_x - prev_x;
-
-	// binormal
-	let prev_y = if j > 0 {
-		Vec3::new(x - 1.0, y, height_pts[i + (j - 1) * dim])
-	} else {
-		Vec3::new(x, y, height_pts[i + j * dim])
-	};
-	let next_y = if j < dim - 1 {
-		Vec3::new(x + 1.0, y, height_pts[i + (j + 1) * dim])
-	} else {
-		Vec3::new(x, y, height_pts[i + j * dim])
-	};
-	let binormal = next_y - prev_y;
-
-	// normal
-	let normal = tangent.cross(binormal);
-	vertice[3] = normal.x;
-	vertice[4] = normal.z;
-	vertice[5] = normal.y;
-
-	return vertice;
+	pub fn normal(left: f32, right: f32, top: f32, bottom: f32) -> Vec3 {
+		Vec3::new(2.0 * (right - left), 2.0 * (bottom - top), -4.0).normalize()
+	}
 }
 
 impl Renderable for Mesh {

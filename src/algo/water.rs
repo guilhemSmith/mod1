@@ -239,6 +239,34 @@ impl Water {
 										data[i * 6 + 1] = n_sum / n_count;
 									}
 								}
+								let prev_x = if x > 0 {
+									terrain.height_points()[x - 1 + y * DIM]
+										+ self.depths[x - 1 + y * DIM]
+								} else {
+									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
+								};
+								let next_x = if x < DIM - 1 {
+									terrain.height_points()[x + 1 + y * DIM]
+										+ self.depths[x + 1 + y * DIM]
+								} else {
+									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
+								};
+								let prev_y = if y > 0 {
+									terrain.height_points()[x + (y - 1) * DIM]
+										+ self.depths[x + (y - 1) * DIM]
+								} else {
+									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
+								};
+								let next_y = if y < DIM - 1 {
+									terrain.height_points()[x + (y + 1) * DIM]
+										+ self.depths[x + (y + 1) * DIM]
+								} else {
+									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
+								};
+								let normal = Mesh::normal(prev_x, next_x, prev_y, next_y);
+								data[i * 6 + 3] = normal.x;
+								data[i * 6 + 4] = normal.z;
+								data[i * 6 + 5] = normal.y;
 							}
 						});
 					}
