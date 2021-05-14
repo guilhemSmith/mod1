@@ -18,7 +18,7 @@ pub struct HeightMap {
 impl HeightMap {
 	pub fn new(filename: &str) -> Result<Self, String> {
 		let mut poi: Vec<Vec3> = Vec::new();
-		let file = File::open(filename).unwrap();
+		let file = File::open(filename).map_err(|err| format!("Failed to read file: {}", err))?;
 		let reader = BufReader::new(file);
 		for (index_l, line) in reader.lines().enumerate() {
 			let line = line.map_err(|err| format!("Failed to read file: {}", err))?;
@@ -27,14 +27,17 @@ impl HeightMap {
 			for (index_v, value) in line.split_ascii_whitespace().enumerate() {
 				count += 1;
 				if count > 3 {
-					return Err(format!("[line: {}] Too many values", index_l));
+					return Err(format!("[line: {}] Too many values", index_l + 1));
 				}
 				point[index_v] = value
 					.parse()
 					.map_err(|err| {
 						format!(
-							"[line: {}, pos:{}] Invalid value '{}' ({})",
-							index_l, index_v, value, err
+							"[line: {}, pos: {}] Invalid value '{}' ({})",
+							index_l + 1,
+							index_v + 1,
+							value,
+							err
 						)
 					})
 					.and_then(|number| {
@@ -42,23 +45,23 @@ impl HeightMap {
 							match number {
 								n if n < 100.0 && n > 0.0 => Ok(n),
 								n => Err(format!(
-								"[line: {}, pos:{}] Invalid coordinate number '{}' (not between 0 and 99)",
-								index_l, index_v, n
+								"[line: {}, pos: {}] Invalid coordinate number '{}' (not between 0 and 99)",
+								index_l + 1, index_v + 1, n
 							)),
 							}
 						} else {
 							match number {
 								n if n < 50.0 && n > -50.0 => Ok(n),
 								n => Err(format!(
-								"[line: {}, pos:{}] Invalid height number '{}' (not between -50 and 50)",
-								index_l, index_v, n
+								"[line: {}, pos: {}] Invalid height number '{}' (not between -50 and 50)",
+								index_l + 1, index_v + 1, n
 							)),
 							}
 						}
 					})?;
 			}
 			if count < 3 {
-				return Err(format!("[line: {}] Not enough values", index_l));
+				return Err(format!("[line: {}] Not enough values", index_l + 1));
 			}
 			poi.push(Vec3::from(point));
 		}

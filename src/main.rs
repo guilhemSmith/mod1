@@ -5,26 +5,33 @@ use algo::HeightMap;
 use engine::{Camera, EntityStore, Mesh, PolygonMode};
 
 fn main() {
+    match exec_main() {
+        Err(err) => eprintln!("{}", err),
+        Ok(()) => {}
+    }
+}
+
+fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
+    let file_arg = std::env::args()
+        .skip(1)
+        .next()
+        .ok_or(String::from("Not enough argument, need 1 file path."))?;
+
     let event_loop = glutin::event_loop::EventLoop::new();
-    let mut renderer = match engine::RendererBuilder::new()
+    let mut renderer = engine::RendererBuilder::new()
         .title("mod1")
         .size((1280, 720))
         .resizable(true)
-        .build(&event_loop)
-    {
-        Err(err) => {
-            eprintln!("{}", err);
-            return;
-        }
-        Ok(renderer) => renderer,
-    };
+        .build(&event_loop)?;
     let mut entities = EntityStore::new();
     let cam = Box::new(Camera::new(true, Some(PolygonMode::Face)));
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
 
     renderer.load_shader("terrain");
-    let terrain = Box::new(HeightMap::new("resources/demo1.mod1").unwrap());
+
+    // let file_path =
+    let terrain = Box::new(HeightMap::new(&file_arg)?);
     let terrain_mesh = Box::new(Mesh::new(
         "terrain",
         &Vec::from(terrain.height_points().clone()),
