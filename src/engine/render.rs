@@ -1,5 +1,5 @@
 use super::{Camera, EngineError, EntityStore, ShaderProgram};
-use crate::map_engine_error;
+use crate::{engine_error, map_engine_error};
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -117,15 +117,19 @@ impl Renderer {
 		map_engine_error!(self.gl_window.swap_buffers(), GLError, err_msg)
 	}
 
-	pub fn render(&self, obj: &dyn Renderable, entities: &EntityStore) {
+	pub fn render(&self, obj: &dyn Renderable, entities: &EntityStore) -> Result<(), EngineError> {
 		if let Some(key) = self.cam_key {
 			if let Some(camera_entity) = entities.get(key) {
 				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
-					if let Err(err) = obj.draw(self, camera) {
-						println!("{}", err);
-					};
+					obj.draw(self, camera)
+				} else {
+					Err(engine_error!(MissingEntity, key.to_string()))
 				}
+			} else {
+				Err(engine_error!(MissingEntity, key.to_string()))
 			}
+		} else {
+			Ok(())
 		}
 	}
 

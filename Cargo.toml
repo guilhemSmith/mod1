@@ -11,3 +11,6 @@ gl = "0.14"
 glutin = "0.26"
 glam = "0.14"
 rand = "0.8"
+
+[build-dependencies]
+fs_extra = "1.2"

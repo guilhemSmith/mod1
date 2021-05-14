@@ -72,7 +72,10 @@ impl EntityStore {
 		for key in self.opaques_renderables.iter() {
 			if let Some(entity) = self.entities.get(key) {
 				if let Some(renderable) = entity.borrow().as_renderable() {
-					renderer.render(renderable, self);
+					if let Err(err) = renderer.render(renderable, self) {
+						eprintln!("{}", err);
+						return false;
+					}
 				}
 			}
 		}
@@ -82,7 +85,10 @@ impl EntityStore {
 		for key in self.transparent_renderables.iter() {
 			if let Some(entity) = self.entities.get(key) {
 				if let Some(renderable) = entity.borrow().as_renderable() {
-					renderer.render(renderable, self);
+					if let Err(err) = renderer.render(renderable, self) {
+						eprintln!("{}", err);
+						return false;
+					}
 				}
 			}
 		}

@@ -56,6 +56,11 @@ pub enum EngineError {
 		line: u32,
 		info: String,
 	},
+	MissingEntity {
+		file: &'static str,
+		line: u32,
+		info: String,
+	},
 }
 
 impl Error for EngineError {}
@@ -74,6 +79,10 @@ impl Display for EngineError {
 					format!("[f:'{}';l:{}]: {}", file, line, info),
 				EngineError::GLError { file, line, info } =>
 					format!("[f:'{}';l:{}]: {}", file, line, info),
+				EngineError::MissingEntity { file, line, info } => format!(
+					"[f:'{}';l:{}]: Failed to find entity '{}'",
+					file, line, info
+				),
 			}
 		)
 	}

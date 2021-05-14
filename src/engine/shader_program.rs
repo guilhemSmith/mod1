@@ -50,9 +50,13 @@ impl ShaderProgram {
 }
 
 fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, EngineError> {
-	let filename = format!("shaders/{}/{}.glsl", name, shader_type.str());
-	let err_msg = format!("Failed to read file '{}'", filename);
-	let source = map_engine_error!(read(&filename), FileError, err_msg)?;
+	let mut path = std::path::PathBuf::from(env!("OUT_DIR"));
+	path.push("shaders");
+	path.push(name);
+	path.push(shader_type.str());
+	path.set_extension("glsl");
+	let err_msg = format!("Failed to read file '{}'", path.to_string_lossy());
+	let source = map_engine_error!(read(&path), FileError, err_msg)?;
 	let c_str = map_engine_error!(CString::new(source), BadCString)?;
 	unsafe {
 		let mut success = i32::from(gl::FALSE);
