@@ -82,6 +82,9 @@ impl RendererBuilder {
 			gl::Enable(gl::DEPTH_TEST);
 			gl::Enable(gl::BLEND);
 			gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+			gl::Enable(gl::CULL_FACE);
+			gl::CullFace(gl::FRONT);
+			gl::FrontFace(gl::CCW);
 		}
 		Ok(Renderer {
 			gl_window,

@@ -95,8 +95,8 @@ impl Mesh {
 					vertices.extend_from_slice(&bot_right);
 					// second triangle
 					vertices.extend_from_slice(&top_left);
-					vertices.extend_from_slice(&bot_left);
 					vertices.extend_from_slice(&bot_right);
+					vertices.extend_from_slice(&bot_left);
 				}
 			}
 		}
