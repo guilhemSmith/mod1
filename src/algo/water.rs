@@ -234,7 +234,7 @@ impl Water {
 
 									if n_count == 0.0 {
 										data[i * 6 + 1] =
-											terrain.height_points()[x + y * DIM] / 2.0 - 0.1;
+											terrain.height_points()[x + y * DIM] - 0.1;
 									} else {
 										data[i * 6 + 1] = n_sum / n_count;
 									}
@@ -295,7 +295,9 @@ impl Water {
 				if inputs.is_pressed(Inputs::K_T) {
 					for i in 0..DIM {
 						for j in 0..DIM {
-							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH {
+							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
+								&& terrain.height_points()[i + j * DIM] >= -ZERO_DEPTH
+							{
 								self.depths[i + j * DIM] += 0.1;
 							}
 						}
@@ -305,7 +307,9 @@ impl Water {
 				if inputs.is_pressed(Inputs::K_D) {
 					for i in 0..DIM {
 						for j in 0..DIM {
-							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH {
+							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
+								&& terrain.height_points()[i + j * DIM] >= -ZERO_DEPTH
+							{
 								self.depths[i + j * DIM] -= 0.1;
 								if self.depths[i + j * DIM] <= ZERO_DEPTH {
 									self.depths[i + j * DIM] = 0.0;

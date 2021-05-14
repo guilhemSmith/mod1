@@ -66,12 +66,18 @@ impl EntityStore {
 
 	pub fn render(&self, renderer: &mut Renderer) -> bool {
 		renderer.clear();
+		unsafe {
+			gl::Enable(gl::CULL_FACE);
+		}
 		for key in self.opaques_renderables.iter() {
 			if let Some(entity) = self.entities.get(key) {
 				if let Some(renderable) = entity.borrow().as_renderable() {
 					renderer.render(renderable, self);
 				}
 			}
+		}
+		unsafe {
+			gl::Disable(gl::CULL_FACE);
 		}
 		for key in self.transparent_renderables.iter() {
 			if let Some(entity) = self.entities.get(key) {

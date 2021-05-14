@@ -3,7 +3,6 @@ mod engine;
 
 use algo::HeightMap;
 use engine::{Camera, EntityStore, Mesh, PolygonMode};
-use glam::Vec3;
 
 fn main() {
     let event_loop = glutin::event_loop::EventLoop::new();
@@ -25,18 +24,7 @@ fn main() {
     renderer.set_cam(Some(cam_key));
 
     renderer.load_shader("terrain");
-    let map = vec![
-        Vec3::new(40.0, 40.0, 10.0),
-        Vec3::new(40.0, 50.0, 10.0),
-        Vec3::new(40.0, 60.0, 10.0),
-        Vec3::new(50.0, 60.0, 10.0),
-        Vec3::new(50.0, 50.0, 0.1),
-        Vec3::new(50.0, 40.0, 10.0),
-        Vec3::new(60.0, 40.0, 10.0),
-        Vec3::new(60.0, 50.0, 10.0),
-        Vec3::new(60.0, 60.0, 10.0),
-    ];
-    let terrain = Box::new(HeightMap::new(map));
+    let terrain = Box::new(HeightMap::new("resources/demo1.mod1").unwrap());
     let terrain_mesh = Box::new(Mesh::new(
         "terrain",
         &Vec::from(terrain.height_points().clone()),

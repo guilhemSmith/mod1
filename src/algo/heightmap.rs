@@ -3,6 +3,8 @@ use crate::engine::Entity;
 
 use glam::{Vec2, Vec3};
 use std::any::Any;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
 const WEIGHT_DIST: f32 = 5.0;
 const MAP_SIZE: usize = DIM * DIM;
@@ -14,10 +16,55 @@ pub struct HeightMap {
 }
 
 impl HeightMap {
-	pub fn new(poi: Vec<Vec3>) -> Self {
+	pub fn new(filename: &str) -> Result<Self, String> {
+		let mut poi: Vec<Vec3> = Vec::new();
+		let file = File::open(filename).unwrap();
+		let reader = BufReader::new(file);
+		for (index_l, line) in reader.lines().enumerate() {
+			let line = line.map_err(|err| format!("Failed to read file: {}", err))?;
+			let mut point: [f32; 3] = [0.0; 3];
+			let mut count = 0;
+			for (index_v, value) in line.split_ascii_whitespace().enumerate() {
+				count += 1;
+				if count > 3 {
+					return Err(format!("[line: {}] Too many values", index_l));
+				}
+				point[index_v] = value
+					.parse()
+					.map_err(|err| {
+						format!(
+							"[line: {}, pos:{}] Invalid value '{}' ({})",
+							index_l, index_v, value, err
+						)
+					})
+					.and_then(|number| {
+						if index_v < 2 {
+							match number {
+								n if n < 100.0 && n > 0.0 => Ok(n),
+								n => Err(format!(
+								"[line: {}, pos:{}] Invalid coordinate number '{}' (not between 0 and 99)",
+								index_l, index_v, n
+							)),
+							}
+						} else {
+							match number {
+								n if n < 50.0 && n > -50.0 => Ok(n),
+								n => Err(format!(
+								"[line: {}, pos:{}] Invalid height number '{}' (not between -50 and 50)",
+								index_l, index_v, n
+							)),
+							}
+						}
+					})?;
+			}
+			if count < 3 {
+				return Err(format!("[line: {}] Not enough values", index_l));
+			}
+			poi.push(Vec3::from(point));
+		}
 		let scaled = poi.into_iter().map(|pt| pt * MAP_SCALE).collect();
 		let map = HeightMap::poi_to_map(scaled);
-		HeightMap { points: map }
+		Ok(HeightMap { points: map })
 	}
 
 	pub fn height_points(&self) -> &Map<MAP_SIZE> {
