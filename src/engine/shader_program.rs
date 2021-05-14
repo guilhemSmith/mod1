@@ -74,7 +74,7 @@ fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, EngineErro
 			let err_msg = format!(
 				"ERROR::SHADER::{}::COMPILATION_FAILED\n{}",
 				shader_type.str().to_uppercase(),
-				str::from_utf8(&info_log).unwrap()
+				String::from_utf8_lossy(&info_log)
 			);
 			Err(engine_error!(ShaderFail, err_msg))
 		}
@@ -104,7 +104,7 @@ fn link_shaders(vertex_shader: u32, fragment_shader: u32) -> Result<u32, EngineE
 			);
 			let err_msg = format!(
 				"ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}",
-				str::from_utf8(&info_log).unwrap()
+				String::from_utf8_lossy(&info_log)
 			);
 			Err(engine_error!(ShaderFail, err_msg))
 		}
