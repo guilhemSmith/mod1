@@ -5,6 +5,7 @@ in vec3 fragPos;
 in vec3 normal;
 
 uniform sampler2D screenTexture;
+uniform vec3 viewPos;
 
 float linearize_depth(float zoverw){
    float n = 0.1; // camera z near
@@ -14,7 +15,7 @@ float linearize_depth(float zoverw){
 
 vec3 light_color(vec3 base_color) {
 
-   vec3 lightColor = vec3(0.7, 0.8, 0.7);
+   vec3 lightColor = vec3(0.7, 0.7, 0.7);
    vec3 lightPos = vec3(150.0, -150.0, 150.0);
 
    float ambientStrength = 0.7;
@@ -26,7 +27,13 @@ vec3 light_color(vec3 base_color) {
    float diff = max(dot(norm, lightDir), 0.0);
    vec3 diffuse = diff * lightColor;
 
-   return (ambient + diffuse) * base_color;
+   float specularStrength = 0.25;
+   vec3 viewDir = normalize(viewPos - fragPos);
+   vec3 reflectDir = reflect(-lightDir, norm);
+   float spec = pow(max(dot(viewDir, reflectDir), 0.0), 128);
+   vec3 specular = specularStrength * spec * lightColor;
+
+   return (ambient + diffuse + specular) * base_color;
 }
 
 void main()

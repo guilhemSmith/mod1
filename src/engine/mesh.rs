@@ -173,6 +173,7 @@ impl Renderable for Mesh {
 		);
 		let view = camera.view();
 		let projection = camera.perspective();
+		let view_pos = camera.pos();
 		shader_program.use_program();
 		unsafe {
 			let uniform_loc = gl::GetUniformLocation(
@@ -196,6 +197,13 @@ impl Renderable for Mesh {
 					.as_ptr(),
 			);
 			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
+			let uniform_loc = gl::GetUniformLocation(
+				shader_program.id(),
+				map_engine_error!(CString::new("viewPos"), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::Uniform3f(uniform_loc, view_pos.x, view_pos.y, view_pos.z);
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}

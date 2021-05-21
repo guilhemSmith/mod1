@@ -64,6 +64,16 @@ impl Camera {
 		Mat4::look_at_rh(cam_pos, CENTER, UP)
 	}
 
+	#[allow(dead_code)]
+	pub fn pos(&self) -> Vec3 {
+		glam::Vec3::new(
+			self.yaw.cos() * self.pitch.cos(),
+			self.pitch.sin(),
+			self.yaw.sin() * self.pitch.cos(),
+		)
+		.normalize() * -self.dist
+	}
+
 	fn change_render_mode(&mut self) {
 		match self.mode {
 			PolygonMode::Point => self.mode = PolygonMode::Line,
