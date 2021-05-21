@@ -239,25 +239,30 @@ impl Water {
 										data[i * 6 + 1] = n_sum / n_count;
 									}
 								}
-								let prev_x = if x > 0 {
+								let prev_x = if x > 0 && self.depths[x - 1 + y * DIM] > ZERO_DEPTH {
 									terrain.height_points()[x - 1 + y * DIM]
 										+ self.depths[x - 1 + y * DIM]
 								} else {
 									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
 								};
-								let next_x = if x < DIM - 1 {
+								let next_x = if x < DIM - 1
+									&& self.depths[x + 1 + y * DIM] > ZERO_DEPTH
+								{
 									terrain.height_points()[x + 1 + y * DIM]
 										+ self.depths[x + 1 + y * DIM]
 								} else {
 									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
 								};
-								let prev_y = if y > 0 {
+								let prev_y = if y > 0 && self.depths[x + (y - 1) * DIM] > ZERO_DEPTH
+								{
 									terrain.height_points()[x + (y - 1) * DIM]
 										+ self.depths[x + (y - 1) * DIM]
 								} else {
 									terrain.height_points()[x + y * DIM] + self.depths[x + y * DIM]
 								};
-								let next_y = if y < DIM - 1 {
+								let next_y = if y < DIM - 1
+									&& self.depths[x + (y + 1) * DIM] > ZERO_DEPTH
+								{
 									terrain.height_points()[x + (y + 1) * DIM]
 										+ self.depths[x + (y + 1) * DIM]
 								} else {
@@ -278,7 +283,7 @@ impl Water {
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
 		if inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
-				self.depths[i] += 1.5;
+				self.depths[i] += 0.5;
 			}
 		}
 

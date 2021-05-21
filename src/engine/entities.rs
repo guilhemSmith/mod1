@@ -1,6 +1,7 @@
-use super::{Inputs, Renderable, Renderer};
+use super::{render::RenderableStore, Inputs, Renderable};
 use std::any::Any;
 use std::cell::{Ref, RefCell, RefMut};
+use std::collections::hash_set;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
@@ -64,42 +65,6 @@ impl EntityStore {
 		}
 	}
 
-	pub fn render(&self, renderer: &mut Renderer) -> bool {
-		renderer.clear();
-		unsafe {
-			gl::Enable(gl::CULL_FACE);
-		}
-		for key in self.opaques_renderables.iter() {
-			if let Some(entity) = self.entities.get(key) {
-				if let Some(renderable) = entity.borrow().as_renderable() {
-					if let Err(err) = renderer.render(renderable, self) {
-						eprintln!("{}", err);
-						return false;
-					}
-				}
-			}
-		}
-		unsafe {
-			gl::Disable(gl::CULL_FACE);
-		}
-		for key in self.transparent_renderables.iter() {
-			if let Some(entity) = self.entities.get(key) {
-				if let Some(renderable) = entity.borrow().as_renderable() {
-					if let Err(err) = renderer.render(renderable, self) {
-						eprintln!("{}", err);
-						return false;
-					}
-				}
-			}
-		}
-		return if let Err(err) = renderer.swap() {
-			eprintln!("{}", err);
-			false
-		} else {
-			true
-		};
-	}
-
 	#[allow(dead_code)]
 	pub fn insert(&mut self, mut entity: Box<dyn Entity>) -> u128 {
 		let mut keys = self.reserved_keys.borrow_mut();
@@ -146,5 +111,14 @@ impl EntityStore {
 	#[allow(dead_code)]
 	pub fn get_mut(&self, key: u128) -> Option<RefMut<Box<dyn Entity>>> {
 		return self.entities.get(&key).map(|rcell| rcell.borrow_mut());
+	}
+}
+
+impl RenderableStore for EntityStore {
+	fn opaques_renderables_keys(&self) -> hash_set::Iter<u128> {
+		self.opaques_renderables.iter()
+	}
+	fn transparent_renderables_keys(&self) -> hash_set::Iter<u128> {
+		self.transparent_renderables.iter()
 	}
 }

@@ -35,6 +35,7 @@ impl Mesh {
 		unsafe {
 			gl::GenVertexArrays(1, &mut vao);
 			gl::GenBuffers(1, &mut vbo);
+
 			gl::BindVertexArray(vao);
 			gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
 			gl::BufferData(
