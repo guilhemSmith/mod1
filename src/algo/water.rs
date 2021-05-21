@@ -234,7 +234,7 @@ impl Water {
 
 									if n_count == 0.0 {
 										data[i * 6 + 1] =
-											terrain.height_points()[x + y * DIM] - 0.1;
+											terrain.height_points()[x + y * DIM] - 1.0;
 									} else {
 										data[i * 6 + 1] = n_sum / n_count;
 									}

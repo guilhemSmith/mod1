@@ -47,9 +47,8 @@ void main()
    }
    else {
       delta = clamp(delta * 200.0, 0.0, 1.0);
-      vec3 foam_color = vec3(1.0);
-      vec3 color = foam_color * (1.0 - delta) + water_color * delta;
-      vec3 final = clamp(light_color(color), 0.0, 1.0);
-      FragColor = vec4(final, 1.0);
+      vec4 foam_color = vec4(vec3(1.0), 0.5);
+      vec4 color = foam_color * (1.0 - delta) + vec4(water_color, 1.0) * delta;
+      FragColor = clamp(vec4(light_color(color.xyz), color.a), 0.0, 1.0);
    }
 }
