@@ -6,7 +6,7 @@ const NEAR: f32 = 0.1;
 const FAR: f32 = 300.0;
 const CENTER: Vec3 = Vec3::ZERO;
 const UP: Vec3 = Vec3::Y;
-const DIST_MIN: f32 = 10.0;
+const DIST_MIN: f32 = 75.0;
 const DIST_MAX: f32 = 100.0;
 const DIST_SPEED: f32 = 0.5;
 

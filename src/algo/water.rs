@@ -4,6 +4,7 @@ use crate::engine::{Entity, EntityStore, Inputs, Mesh};
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
+const MAX_HEIGHT: f32 = 50.0;
 
 const D_MAP_SIZE: usize = DIM * DIM;
 const P_MAP_SIZE: usize = (DIM - 1) * DIM;
@@ -18,6 +19,7 @@ pub struct Water {
 	depths: Map<D_MAP_SIZE>,
 	pipes_y: Map<P_MAP_SIZE>,
 	pipes_x: Map<P_MAP_SIZE>,
+	avg_depth: f32,
 }
 
 impl Water {
@@ -28,6 +30,7 @@ impl Water {
 			depths: [0.0; D_MAP_SIZE],
 			pipes_y: [0.0; P_MAP_SIZE],
 			pipes_x: [0.0; P_MAP_SIZE],
+			avg_depth: 0.0,
 		}
 	}
 
@@ -163,6 +166,7 @@ impl Water {
 	}
 
 	fn update_depths(&mut self, delta_time: f32) {
+		self.avg_depth = 0.0;
 		for i in 0..DIM {
 			for j in 0..DIM {
 				let (flow_in, flow_out) = self.compute_flows(i, j);
@@ -170,8 +174,10 @@ impl Water {
 
 				let delta_depth = delta_time * flow_sum / (GRID_STEP * GRID_STEP);
 				self.depths[i + j * DIM] += delta_depth;
+				self.avg_depth += self.depths[i + j * DIM];
 			}
 		}
+		self.avg_depth /= (DIM * DIM) as f32;
 	}
 
 	fn update_mesh(&self, store: &EntityStore) {
@@ -281,19 +287,19 @@ impl Water {
 	}
 
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
-		if inputs.is_pressed(Inputs::K_W) {
+		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
-				self.depths[i] += 1.5;
+				self.depths[i] += 0.5 + self.avg_depth / 10.0;
 			}
 		}
 
-		if inputs.is_pressed(Inputs::K_R) {
+		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_R) {
 			self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
 		}
 
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
-				if inputs.is_pressed(Inputs::K_T) {
+				if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_T) {
 					for i in 0..DIM {
 						for j in 0..DIM {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
