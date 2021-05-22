@@ -45,8 +45,8 @@ void main()
    float delta = depth - height;
    float depth_fade = exp(-delta * 10.0);
    depth_fade = clamp(depth_fade, 0.0, 1.0);
-   vec3 deep_color = vec3(0.05, 0.1, 0.15);
-   vec3 shallow_color = vec3(0.1, 0.4, 0.6);
+   vec3 deep_color = vec3(0.05, 0.15, 0.15);
+   vec3 shallow_color = vec3(0.1, 0.5, 0.6);
    vec3 water_color = deep_color * (1.0 - depth_fade) + shallow_color * depth_fade;
    if (delta > 0.005) {
       vec3 final = clamp(light_color(water_color), 0.0, 1.0);
@@ -54,7 +54,7 @@ void main()
    }
    else {
       delta = clamp(delta * 200.0, 0.0, 1.0);
-      vec4 foam_color = vec4(vec3(1.0), 0.5);
+      vec4 foam_color = vec4(vec3(1.0), 0.1);
       vec4 color = foam_color * (1.0 - delta) + vec4(water_color, 1.0) * delta;
       FragColor = clamp(vec4(light_color(color.xyz), color.a), 0.0, 1.0);
    }
