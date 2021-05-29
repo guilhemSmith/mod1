@@ -29,27 +29,21 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     renderer.set_cam(Some(cam_key));
 
     renderer.load_shader("terrain");
+    renderer.load_shader("border");
 
-    // let file_path =
     let terrain = Box::new(HeightMap::new(&file_arg)?);
-    let terrain_mesh = Box::new(Mesh::new(
-        "terrain",
-        &Vec::from(terrain.height_points().clone()),
-        algo::DIM,
-        true,
-        true,
-    ));
+    let terrain_vert =
+        Mesh::heights_gen_vertices(algo::DIM, &Vec::from(terrain.height_points().clone()));
+    let terrain_mesh = Box::new(Mesh::new("terrain", &terrain_vert, algo::DIM, true, true));
+    let border_vert = Mesh::wall_gen_vertices(&terrain.border_wall().clone());
+    let border_mesh = Box::new(Mesh::new("border", &border_vert, algo::DIM, true, true));
     let terrain_id = entities.insert(terrain);
     entities.insert(terrain_mesh);
+    entities.insert(border_mesh);
 
     renderer.load_shader("water");
-    let water_mesh = Box::new(Mesh::new(
-        "water",
-        &vec![-0.1; algo::DIM * algo::DIM],
-        algo::DIM,
-        false,
-        false,
-    ));
+    let water_vert = Mesh::heights_gen_vertices(algo::DIM, &vec![-0.1; algo::DIM * algo::DIM]);
+    let water_mesh = Box::new(Mesh::new("water", &water_vert, algo::DIM, false, false));
     let water_id = entities.insert(water_mesh);
     let water = algo::Water::new(water_id, terrain_id);
     entities.insert(Box::new(water));

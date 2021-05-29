@@ -21,14 +21,12 @@ pub struct Mesh {
 impl Mesh {
 	pub fn new(
 		shader_name: &str,
-		points: &Vec<f32>,
+		vertices_flat: &Vec<f32>,
 		dim: usize,
 		opaque: bool,
 		static_data: bool,
 	) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
-		let mesh_dim = (points.len() as f32).sqrt();
-		let vertices_flat: Vec<f32> = Mesh::gen_vertices(mesh_dim as usize, points);
 		let count = vertices_flat.len() as i32;
 
 		let (mut vbo, mut vao) = (0, 0);
@@ -80,7 +78,7 @@ impl Mesh {
 		}
 	}
 
-	pub fn gen_vertices(dim: usize, height_pts: &Vec<f32>) -> Vec<f32> {
+	pub fn heights_gen_vertices(dim: usize, height_pts: &Vec<f32>) -> Vec<f32> {
 		let mut vertices = Vec::new();
 		for i in 0..dim {
 			for j in 0..dim {
@@ -148,6 +146,67 @@ impl Mesh {
 		vertice[4] = normal.z;
 		vertice[5] = normal.y;
 		return vertice;
+	}
+
+	pub fn wall_gen_vertices(columns: &Vec<Vec3>) -> Vec<f32> {
+		let mut vertices = Vec::new();
+		for i in 0..(columns.len() / 2 - 1) {
+			let (bot_left, top_left, bot_right, top_right) =
+				Mesh::compute_wall_vertice(i * 2, columns);
+
+			// first triangle
+			vertices.extend_from_slice(&top_left);
+			vertices.extend_from_slice(&bot_right);
+			vertices.extend_from_slice(&top_right);
+			// second triangle
+			vertices.extend_from_slice(&top_left);
+			vertices.extend_from_slice(&bot_left);
+			vertices.extend_from_slice(&bot_right);
+		}
+		return vertices;
+	}
+
+	fn compute_wall_vertice(
+		index: usize,
+		columns: &Vec<Vec3>,
+	) -> ([f32; 6], [f32; 6], [f32; 6], [f32; 6]) {
+		let mut bot_left = [0.0; 6];
+		let mut top_left = [0.0; 6];
+		let mut bot_right = [0.0; 6];
+		let mut top_right = [0.0; 6];
+
+		let normal =
+			(columns[index + 1] - columns[index]).cross(columns[index + 2] - columns[index]);
+
+		bot_left[0] = columns[index].x;
+		bot_left[1] = columns[index].z;
+		bot_left[2] = columns[index].y;
+		bot_left[3] = normal.x;
+		bot_left[4] = normal.z;
+		bot_left[5] = normal.y;
+
+		top_left[0] = columns[index + 1].x;
+		top_left[1] = columns[index + 1].z;
+		top_left[2] = columns[index + 1].y;
+		top_left[3] = normal.x;
+		top_left[4] = normal.z;
+		top_left[5] = normal.y;
+
+		bot_right[0] = columns[index + 2].x;
+		bot_right[1] = columns[index + 2].z;
+		bot_right[2] = columns[index + 2].y;
+		bot_right[3] = normal.x;
+		bot_right[4] = normal.z;
+		bot_right[5] = normal.y;
+
+		top_right[0] = columns[index + 3].x;
+		top_right[1] = columns[index + 3].z;
+		top_right[2] = columns[index + 3].y;
+		top_right[3] = normal.x;
+		top_right[4] = normal.z;
+		top_right[5] = normal.y;
+
+		return (bot_left, top_left, bot_right, top_right);
 	}
 
 	pub fn normal(left: f32, right: f32, top: f32, bottom: f32) -> Vec3 {

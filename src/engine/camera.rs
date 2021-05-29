@@ -109,7 +109,7 @@ impl super::Entity for Camera {
 			self.pitch += axis.y.to_radians() * self.speed * delta;
 			self.pitch = self
 				.pitch
-				.clamp(f32::to_radians(-80.0), f32::to_radians(80.0));
+				.clamp(f32::to_radians(-20.0), f32::to_radians(80.0));
 		}
 		let dist_delta = inputs.wheel_delta() * self.zoom_coef;
 		if dist_delta != 0.0 {

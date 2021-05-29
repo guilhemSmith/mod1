@@ -74,6 +74,22 @@ impl HeightMap {
 		&self.points
 	}
 
+	pub fn border_wall(&self) -> Vec<Vec3> {
+		let dim = (DIM - 1) as f32;
+		vec![
+			Vec3::new(0.0, 0.0, -50.0),
+			Vec3::new(0.0, 0.0, 0.0),
+			Vec3::new(dim, 0.0, -50.0),
+			Vec3::new(dim, 0.0, 0.0),
+			Vec3::new(dim, dim, -50.0),
+			Vec3::new(dim, dim, 0.0),
+			Vec3::new(0.0, dim, -50.0),
+			Vec3::new(0.0, dim, 0.0),
+			Vec3::new(0.0, 0.0, -50.0),
+			Vec3::new(0.0, 0.0, 0.0),
+		]
+	}
+
 	fn add_border_zero(poi: &mut Vec<Vec3>) {
 		let max_val = (DIM - 1) as f32;
 		poi.push(Vec3::new(0.0, 0.0, 0.0));

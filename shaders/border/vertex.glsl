@@ -29,6 +29,7 @@ void main()
 			color = vec3(0.1, 0.1, 0.1) * (-aPos.y - 15.0) / 35.0 + vec3(0.5, 0.5, 0.5) * (1.0 + (aPos.y + 15.0) / 35.0);
 		}
 	}
+	// color = vec3(0.8, 0.8, 0.3);
 	fragPos = vec3(model * vec4(aPos, 1.0));
 	normal = aNormal;
 }
