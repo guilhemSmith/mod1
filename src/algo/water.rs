@@ -1,6 +1,7 @@
 use super::{HeightMap, Map, DIM};
 use crate::engine::{Entity, EntityStore, Inputs, Mesh};
 
+use glam::Vec3;
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
@@ -16,6 +17,7 @@ const GRID_STEP: f32 = 0.1;
 pub struct Water {
 	mesh_id: u128,
 	terrain_id: u128,
+	border_id: u128,
 	depths: Map<D_MAP_SIZE>,
 	pipes_y: Map<P_MAP_SIZE>,
 	pipes_x: Map<P_MAP_SIZE>,
@@ -23,10 +25,11 @@ pub struct Water {
 }
 
 impl Water {
-	pub fn new(mesh_id: u128, terrain_id: u128) -> Self {
+	pub fn new(mesh_id: u128, terrain_id: u128, border_id: u128) -> Self {
 		Water {
 			mesh_id,
 			terrain_id,
+			border_id,
 			depths: [0.0; D_MAP_SIZE],
 			pipes_y: [0.0; P_MAP_SIZE],
 			pipes_x: [0.0; P_MAP_SIZE],
@@ -286,6 +289,59 @@ impl Water {
 		}
 	}
 
+	fn update_border_mesh(&self, store: &EntityStore) {
+		if let Some(ent_terrain) = store.get(self.terrain_id) {
+			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
+				let mut bord_points = Vec::new();
+				for x in 0..(DIM - 1) {
+					bord_points.push(Vec3::new(x as f32, 0.0, 0.0));
+					bord_points.push(Vec3::new(
+						x as f32,
+						0.0,
+						self.depths[x] + terrain.height_points()[x],
+					));
+				}
+				for y in 0..(DIM - 1) {
+					bord_points.push(Vec3::new((DIM - 1) as f32, y as f32, 0.0));
+					bord_points.push(Vec3::new(
+						(DIM - 1) as f32,
+						y as f32,
+						self.depths[DIM - 1 + y * DIM] + terrain.height_points()[DIM - 1 + y * DIM],
+					));
+				}
+
+				for x in (0..(DIM)).rev() {
+					bord_points.push(Vec3::new(x as f32, (DIM - 1) as f32, 0.0));
+					bord_points.push(Vec3::new(
+						x as f32,
+						(DIM - 1) as f32,
+						self.depths[x + (DIM - 1) * DIM]
+							+ terrain.height_points()[x + (DIM - 1) * DIM],
+					));
+				}
+				for y in (0..(DIM)).rev() {
+					bord_points.push(Vec3::new(0.0, y as f32, 0.0));
+					bord_points.push(Vec3::new(
+						0.0,
+						y as f32,
+						self.depths[0 + y * DIM] + terrain.height_points()[0 + y * DIM],
+					));
+				}
+
+				if let Some(ent_mesh) = store.get_mut(self.border_id) {
+					if let Some(mesh) = ent_mesh.as_any().downcast_ref::<Mesh>() {
+						mesh.update_vertices(|data| {
+							let bord_vert = Mesh::wall_gen_vertices(&bord_points);
+							for (i, val) in bord_vert.into_iter().enumerate() {
+								data[i] = val;
+							}
+						});
+					}
+				}
+			}
+		}
+	}
+
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
 		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_W) {
 			for i in 0..DIM {
@@ -353,5 +409,6 @@ impl Entity for Water {
 		self.update_depths(delta);
 		self.handle_inputs(inputs, store);
 		self.update_mesh(store);
+		self.update_border_mesh(store);
 	}
 }

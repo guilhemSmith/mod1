@@ -1,6 +1,8 @@
 mod algo;
 mod engine;
 
+use glam::Vec3;
+
 use algo::HeightMap;
 use engine::{Camera, EntityStore, Mesh, PolygonMode};
 
@@ -45,7 +47,10 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     let water_vert = Mesh::heights_gen_vertices(algo::DIM, &vec![-0.1; algo::DIM * algo::DIM]);
     let water_mesh = Box::new(Mesh::new("water", &water_vert, algo::DIM, false, false));
     let water_id = entities.insert(water_mesh);
-    let water = algo::Water::new(water_id, terrain_id);
+    let border_vert = Mesh::wall_gen_vertices(&vec![Vec3::ZERO; 800]);
+    let border_mesh = Box::new(Mesh::new("water", &border_vert, algo::DIM, false, false));
+    let border_id = entities.insert(border_mesh);
+    let water = algo::Water::new(water_id, terrain_id, border_id);
     entities.insert(Box::new(water));
     let proxy = event_loop.create_proxy();
     event_loop.run(engine::core_loop(renderer, entities, proxy));

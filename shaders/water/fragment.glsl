@@ -48,7 +48,7 @@ void main()
    vec3 deep_color = vec3(0.05, 0.15, 0.15);
    vec3 shallow_color = vec3(0.1, 0.5, 0.6);
    vec3 water_color = deep_color * (1.0 - depth_fade) + shallow_color * depth_fade;
-   if (delta > 0.005) {
+   if (delta > 0.005 || normal.y == 0.0) {
       vec3 final = clamp(light_color(water_color), 0.0, 1.0);
       FragColor = vec4(final, 1.0);
    }
