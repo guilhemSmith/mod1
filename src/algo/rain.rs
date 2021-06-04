@@ -28,10 +28,24 @@ impl Rain {
 			let droplet = Vec3::new(
 				(rand::random::<usize>() % DIM) as f32,
 				(rand::random::<usize>() % DIM) as f32,
-				50.0,
+				75.0,
 			);
 			self.droplets.push_front(droplet);
 			println!("{}", self.droplets.len());
+		}
+	}
+
+	fn update_mesh(&self, store: &EntityStore) {
+		if let Some(ent_mesh) = store.get(self.mesh_id) {
+			if let Some(mesh) = ent_mesh.as_any().downcast_ref::<MeshPoints>() {
+				mesh.update_vertices(|data| {
+					for (id, droplet) in self.droplets.iter().enumerate() {
+						data[id * 3 + 0] = droplet.x;
+						data[id * 3 + 1] = droplet.z;
+						data[id * 3 + 2] = droplet.y;
+					}
+				});
+			}
 		}
 	}
 }
@@ -44,6 +58,6 @@ impl Entity for Rain {
 	fn update(&mut self, delta: f32, inputs: &Inputs, store: &EntityStore) {
 		// self.update_droplets(delta, store);
 		self.handle_inputs(inputs);
-		// self.update_mesh(store);
+		self.update_mesh(store);
 	}
 }
