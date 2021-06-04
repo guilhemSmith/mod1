@@ -351,7 +351,7 @@ impl Water {
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
 		if self.avg_depth < Water::MAX_HEIGHT && inputs.is_pressed(KeyCode::W) {
 			for i in 0..DIM {
-				self.depths[i] += 0.5 + self.avg_depth / 10.0;
+				self.depths[i] += 0.75 + self.avg_depth / 15.0;
 			}
 		}
 

@@ -27,10 +27,10 @@ vec3 light_color(vec3 base_color) {
    float diff = max(dot(norm, lightDir), 0.0);
    vec3 diffuse = diff * lightColor;
 
-   float specularStrength = 0.25;
+   float specularStrength = 0.5;
    vec3 viewDir = normalize(viewPos - fragPos);
    vec3 reflectDir = reflect(-lightDir, norm);
-   float spec = pow(max(dot(viewDir, reflectDir), 0.0), 128);
+   float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
    vec3 specular = specularStrength * spec * lightColor;
 
    return (ambient + diffuse + specular) * base_color;
@@ -54,7 +54,7 @@ void main()
    }
    else {
       delta = clamp(delta * 200.0, 0.0, 1.0);
-      vec4 foam_color = vec4(vec3(1.0), 0.1);
+      vec4 foam_color = vec4(vec3(1.0), 0.5);
       vec4 color = foam_color * (1.0 - delta) + vec4(water_color, 1.0) * delta;
       FragColor = clamp(vec4(light_color(color.xyz), color.a), 0.0, 1.0);
    }
