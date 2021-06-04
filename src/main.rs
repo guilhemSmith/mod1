@@ -1,16 +1,21 @@
 mod algo;
 mod engine;
 
-use glam::Vec3;
-
-use algo::{HeightMap, Rain};
-use engine::{Camera, EntityStore, Mesh, MeshPoints, PolygonMode};
+use algo::{HeightMap, Rain, Water};
+use engine::{Camera, EntityStore, PolygonMode, Renderer};
 
 fn main() {
     match exec_main() {
         Err(err) => eprintln!("{}", err),
         Ok(()) => {}
     }
+}
+
+fn load_shaders(renderer: &mut Renderer) {
+    renderer.load_shader("terrain");
+    renderer.load_shader("border");
+    renderer.load_shader("water");
+    renderer.load_shader("rain");
 }
 
 fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,36 +34,15 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     let cam = Box::new(Camera::new(true, Some(PolygonMode::Face)));
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
-
-    renderer.load_shader("terrain");
-    renderer.load_shader("border");
+    load_shaders(&mut renderer);
 
     let terrain = Box::new(HeightMap::new(&file_arg)?);
-    let terrain_vert =
-        Mesh::heights_gen_vertices(algo::DIM, &Vec::from(terrain.height_points().clone()));
-    let terrain_mesh = Box::new(Mesh::new("terrain", &terrain_vert, algo::DIM, true, true));
-    let border_vert = Mesh::wall_gen_vertices(&terrain.border_wall().clone());
-    let border_mesh = Box::new(Mesh::new("border", &border_vert, algo::DIM, true, true));
     let terrain_id = entities.insert(terrain);
-    entities.insert(terrain_mesh);
-    entities.insert(border_mesh);
 
-    renderer.load_shader("water");
-    let water_vert = Mesh::heights_gen_vertices(algo::DIM, &vec![-0.1; algo::DIM * algo::DIM]);
-    let water_mesh = Box::new(Mesh::new("water", &water_vert, algo::DIM, false, false));
-    let water_mesh_id = entities.insert(water_mesh);
-    let border_vert = Mesh::wall_gen_vertices(&vec![Vec3::ZERO; 800]);
-    let border_mesh = Box::new(Mesh::new("water", &border_vert, algo::DIM, false, false));
-    let border_id = entities.insert(border_mesh);
-    let water = algo::Water::new(water_mesh_id, terrain_id, border_id);
+    let water = Water::new(&entities, terrain_id);
     let water_id = entities.insert(Box::new(water));
 
-    renderer.load_shader("rain");
-    let rain_vert =
-        MeshPoints::points_vertices(&vec![Vec3::new(50.0, 50.0, -1.0); Rain::MAX_COUNT]);
-    let rain_mesh = Box::new(MeshPoints::new("rain", &rain_vert, algo::DIM, false, false));
-    let rain_id = entities.insert(rain_mesh);
-    let rain = Rain::new(rain_id, water_id);
+    let rain = Rain::new(&entities, water_id);
     entities.insert(Box::new(rain));
 
     let proxy = event_loop.create_proxy();

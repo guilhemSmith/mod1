@@ -25,7 +25,13 @@ pub struct Water {
 impl Water {
 	pub const MAX_HEIGHT: f32 = 50.0;
 
-	pub fn new(mesh_id: u128, terrain_id: u128, border_id: u128) -> Self {
+	pub fn new(store: &EntityStore, terrain_id: u128) -> Self {
+		let water_vert = Mesh::heights_gen_vertices(DIM, &vec![-0.1; DIM * DIM]);
+		let water_mesh = Box::new(Mesh::new("water", &water_vert, DIM, false, false));
+		let mesh_id = store.to_new_queue(water_mesh);
+		let border_vert = Mesh::wall_gen_vertices(&vec![Vec3::ZERO; 800]);
+		let border_mesh = Box::new(Mesh::new("water", &border_vert, DIM, false, false));
+		let border_id = store.to_new_queue(border_mesh);
 		Water {
 			mesh_id,
 			terrain_id,

@@ -68,13 +68,15 @@ impl EntityStore {
 
 	#[allow(dead_code)]
 	pub fn insert(&mut self, mut entity: Box<dyn Entity>) -> u128 {
-		let mut keys = self.reserved_keys.borrow_mut();
 		let mut next_key: u128 = 0;
-		while keys.contains(&next_key) {
-			next_key += 1;
+		{
+			let mut keys = self.reserved_keys.borrow_mut();
+			while keys.contains(&next_key) {
+				next_key += 1;
+			}
+			keys.insert(next_key);
 		}
 		entity.start(&self);
-		keys.insert(next_key);
 		if let Some(renderable) = entity.as_renderable() {
 			if renderable.is_opaque() {
 				self.opaques_renderables.insert(next_key);
@@ -88,13 +90,15 @@ impl EntityStore {
 
 	#[allow(dead_code)]
 	pub fn to_new_queue(&self, mut entity: Box<dyn Entity>) -> u128 {
-		let mut keys = self.reserved_keys.borrow_mut();
 		let mut next_key: u128 = 0;
-		while keys.contains(&next_key) {
-			next_key += 1;
+		{
+			let mut keys = self.reserved_keys.borrow_mut();
+			while keys.contains(&next_key) {
+				next_key += 1;
+			}
+			keys.insert(next_key);
 		}
 		entity.start(&self);
-		keys.insert(next_key);
 		self.new_queue.borrow_mut().push((next_key, entity));
 		return next_key;
 	}

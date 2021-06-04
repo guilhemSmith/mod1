@@ -13,10 +13,14 @@ pub struct Rain {
 }
 
 impl Rain {
-	pub const MAX_COUNT: usize = 500;
+	const MAX_COUNT: usize = 500;
 	const DROPLET_PER_FRAME: usize = 3;
 
-	pub fn new(mesh_id: u128, water_id: u128) -> Self {
+	pub fn new(store: &EntityStore, water_id: u128) -> Self {
+		let rain_vert =
+			MeshPoints::points_vertices(&vec![Vec3::new(50.0, 50.0, -1.0); Rain::MAX_COUNT]);
+		let rain_mesh = Box::new(MeshPoints::new("rain", &rain_vert, DIM, false, false));
+		let mesh_id = store.to_new_queue(rain_mesh);
 		Rain {
 			mesh_id,
 			water_id,

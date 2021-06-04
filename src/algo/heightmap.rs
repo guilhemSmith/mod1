@@ -1,5 +1,5 @@
 use super::{Map, DIM};
-use crate::engine::Entity;
+use crate::engine::{Entity, EntityStore, Mesh};
 
 use glam::{Vec2, Vec3};
 use std::any::Any;
@@ -143,5 +143,14 @@ impl Entity for HeightMap {
 
 	fn as_any_mut(&mut self) -> &mut dyn Any {
 		self
+	}
+
+	fn start(&mut self, store: &EntityStore) {
+		let terrain_vert = Mesh::heights_gen_vertices(DIM, &Vec::from(self.points));
+		let terrain_mesh = Box::new(Mesh::new("terrain", &terrain_vert, DIM, true, true));
+		let border_vert = Mesh::wall_gen_vertices(&self.border_wall());
+		let border_mesh = Box::new(Mesh::new("border", &border_vert, DIM, true, true));
+		store.to_new_queue(terrain_mesh);
+		store.to_new_queue(border_mesh);
 	}
 }
