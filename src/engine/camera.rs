@@ -1,4 +1,4 @@
-use super::{ClickButton, Inputs};
+use super::{ClickButton, Inputs, KeyCode};
 use glam::{Mat4, Vec3};
 use std::any::Any;
 
@@ -102,7 +102,7 @@ impl super::Entity for Camera {
 		self.set_render_mode();
 	}
 
-	fn update(&mut self, delta: f32, inputs: &super::Inputs, _store: &super::EntityStore) {
+	fn update(&mut self, delta: f32, inputs: &Inputs, _store: &super::EntityStore) {
 		if inputs.is_click_pressed(ClickButton::Left) {
 			let axis = inputs.mouse_rel();
 			self.yaw += axis.x.to_radians() * self.speed * delta;
@@ -115,7 +115,7 @@ impl super::Entity for Camera {
 		if dist_delta != 0.0 {
 			self.dist = (self.dist - dist_delta).clamp(DIST_MIN, DIST_MAX);
 		}
-		if inputs.is_just_pressed(Inputs::K_SPACE) {
+		if inputs.is_just_pressed(KeyCode::Space) {
 			self.change_render_mode();
 		}
 	}

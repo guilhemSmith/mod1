@@ -1,6 +1,6 @@
 use glam::Vec2;
 use glutin::dpi::PhysicalPosition;
-use glutin::event::{ElementState, KeyboardInput, MouseButton};
+use glutin::event::{ElementState, KeyboardInput, MouseButton, VirtualKeyCode};
 use std::collections::HashMap;
 
 #[allow(dead_code)]
@@ -38,35 +38,15 @@ struct MouseState {
 
 pub struct Inputs {
 	active: bool,
-	keys_states: HashMap<u32, KeyState>,
+	keys_states: HashMap<KeyCode, KeyState>,
 	mouse_state: MouseState,
 	wheel_delta: f32,
 }
 
-impl Inputs {
-	#[allow(dead_code)]
-	pub const K_ESC: u32 = 1;
-	#[allow(dead_code)]
-	pub const K_SPACE: u32 = 57;
-	#[allow(dead_code)]
-	pub const K_ENTER: u32 = 28;
-	#[allow(dead_code)]
-	pub const K_UP: u32 = 103;
-	#[allow(dead_code)]
-	pub const K_DOWN: u32 = 108;
-	#[allow(dead_code)]
-	pub const K_LEFT: u32 = 105;
-	#[allow(dead_code)]
-	pub const K_RIGHT: u32 = 106;
-	#[allow(dead_code)]
-	pub const K_T: u32 = 20;
-	#[allow(dead_code)]
-	pub const K_R: u32 = 19;
-	#[allow(dead_code)]
-	pub const K_W: u32 = 17;
-	#[allow(dead_code)]
-	pub const K_D: u32 = 32;
+#[allow(dead_code)]
+pub type KeyCode = VirtualKeyCode;
 
+impl Inputs {
 	pub fn new() -> Self {
 		Inputs {
 			active: false,
@@ -82,7 +62,7 @@ impl Inputs {
 	}
 
 	#[allow(dead_code)]
-	pub fn is_pressed(&self, code: u32) -> bool {
+	pub fn is_pressed(&self, code: KeyCode) -> bool {
 		match self.keys_states.get(&code) {
 			Some(state) => state.pressed,
 			None => false,
@@ -90,7 +70,7 @@ impl Inputs {
 	}
 
 	#[allow(dead_code)]
-	pub fn is_released(&self, code: u32) -> bool {
+	pub fn is_released(&self, code: KeyCode) -> bool {
 		match self.keys_states.get(&code) {
 			Some(state) => !state.pressed,
 			None => true,
@@ -98,7 +78,7 @@ impl Inputs {
 	}
 
 	#[allow(dead_code)]
-	pub fn is_just_pressed(&self, code: u32) -> bool {
+	pub fn is_just_pressed(&self, code: KeyCode) -> bool {
 		match self.keys_states.get(&code) {
 			Some(state) => state.pressed && state.just_changed,
 			None => false,
@@ -106,7 +86,7 @@ impl Inputs {
 	}
 
 	#[allow(dead_code)]
-	pub fn is_just_released(&self, code: u32) -> bool {
+	pub fn is_just_released(&self, code: KeyCode) -> bool {
 		match self.keys_states.get(&code) {
 			Some(state) => !state.pressed && state.just_changed,
 			None => false,
@@ -177,13 +157,15 @@ impl Inputs {
 
 	pub fn store_key(&mut self, input: KeyboardInput) {
 		self.active = true;
-		match self.keys_states.get_mut(&input.scancode) {
-			Some(state) => {
-				state.update(input.state);
-			}
-			None => {
-				let new_state = KeyState::new(input.state == ElementState::Pressed);
-				self.keys_states.insert(input.scancode, new_state);
+		if let Some(v_keycode) = input.virtual_keycode {
+			match self.keys_states.get_mut(&v_keycode) {
+				Some(state) => {
+					state.update(input.state);
+				}
+				None => {
+					let new_state = KeyState::new(input.state == ElementState::Pressed);
+					self.keys_states.insert(v_keycode, new_state);
+				}
 			}
 		}
 	}

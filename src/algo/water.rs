@@ -1,5 +1,5 @@
 use super::{HeightMap, Map, DIM};
-use crate::engine::{Entity, EntityStore, Inputs, Mesh};
+use crate::engine::{Entity, EntityStore, Inputs, KeyCode, Mesh};
 
 use glam::Vec3;
 use std::any::Any;
@@ -343,19 +343,19 @@ impl Water {
 	}
 
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
-		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_W) {
+		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::W) {
 			for i in 0..DIM {
 				self.depths[i] += 0.5 + self.avg_depth / 10.0;
 			}
 		}
 
-		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_R) {
+		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::R) {
 			self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
 		}
 
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
-				if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(Inputs::K_T) {
+				if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::T) {
 					for i in 0..DIM {
 						for j in 0..DIM {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
@@ -367,7 +367,7 @@ impl Water {
 					}
 				}
 
-				if inputs.is_pressed(Inputs::K_D) {
+				if inputs.is_pressed(KeyCode::D) {
 					for i in 0..DIM {
 						for j in 0..DIM {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH

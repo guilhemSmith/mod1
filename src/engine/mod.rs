@@ -9,7 +9,7 @@ mod shader_program;
 pub use camera::{Camera, PolygonMode};
 pub use entities::{Entity, EntityStore};
 pub use error::EngineError;
-pub use input::{ClickButton, Inputs};
+pub use input::{ClickButton, Inputs, KeyCode};
 pub use mesh::Mesh;
 pub use render::{Renderable, Renderer, RendererBuilder};
 pub use shader_program::ShaderProgram;
