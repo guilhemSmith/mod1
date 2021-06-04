@@ -15,7 +15,7 @@ pub use render::{Renderable, Renderer, RendererBuilder};
 pub use shader_program::ShaderProgram;
 
 use glutin::{
-	event::{Event, MouseScrollDelta, WindowEvent},
+	event::{Event, MouseScrollDelta, VirtualKeyCode, WindowEvent},
 	event_loop::{ControlFlow, EventLoopProxy, EventLoopWindowTarget},
 };
 use std::time;
@@ -35,7 +35,12 @@ pub fn core_loop(
 			Event::WindowEvent { event, .. } => match event {
 				WindowEvent::CloseRequested => *flow = ControlFlow::Exit,
 				WindowEvent::Resized(size) => renderer.resize(size),
-				WindowEvent::KeyboardInput { input, .. } => inputs.store_key(input),
+				WindowEvent::KeyboardInput { input, .. } => {
+					if let Some(VirtualKeyCode::Escape) = input.virtual_keycode {
+						*flow = ControlFlow::Exit;
+					}
+					inputs.store_key(input)
+				}
 				WindowEvent::MouseInput { state, button, .. } => inputs.store_click(state, button),
 				WindowEvent::CursorMoved { position, .. } => inputs.store_motion(position),
 				WindowEvent::MouseWheel { delta, .. } => {

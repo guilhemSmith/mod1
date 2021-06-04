@@ -44,9 +44,9 @@ impl Water {
 					|depth: f32, depth_next: f32, terrain: f32, terrain_next: f32| {
 						let height_delta = (depth_next + terrain_next) - (depth + terrain);
 						let upwind_depth = f32::min(f32::max(depth, depth_next), 5.0);
-						return upwind_depth * G * height_delta * delta_time;
+						return 1.0 * upwind_depth * G * height_delta * delta_time;
 					};
-				let flow_decceleration = f32::min(1.0 - delta_time * 1.5, 1.0);
+				let flow_decceleration = f32::min(1.0 - delta_time * 1.0, 1.0);
 
 				for i in 0..(DIM - 1) {
 					for j in 0..DIM {
