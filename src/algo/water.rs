@@ -1,16 +1,14 @@
-use super::{HeightMap, Map, DIM};
+use super::{HeightMap, Map, DIM, G};
 use crate::engine::{Entity, EntityStore, Inputs, KeyCode, Mesh};
 
 use glam::Vec3;
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
-const MAX_HEIGHT: f32 = 50.0;
 
 const D_MAP_SIZE: usize = DIM * DIM;
 const P_MAP_SIZE: usize = (DIM - 1) * DIM;
 
-const G: f32 = 9.81;
 const GRID_STEP: f32 = 0.1;
 
 #[derive(Debug)]
@@ -25,6 +23,8 @@ pub struct Water {
 }
 
 impl Water {
+	pub const MAX_HEIGHT: f32 = 50.0;
+
 	pub fn new(mesh_id: u128, terrain_id: u128, border_id: u128) -> Self {
 		Water {
 			mesh_id,
@@ -343,19 +343,15 @@ impl Water {
 	}
 
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
-		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::W) {
+		if self.avg_depth < Water::MAX_HEIGHT && inputs.is_pressed(KeyCode::W) {
 			for i in 0..DIM {
 				self.depths[i] += 0.5 + self.avg_depth / 10.0;
 			}
 		}
 
-		// if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::R) {
-		// 	self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
-		// }
-
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
-				if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::T) {
+				if self.avg_depth < Water::MAX_HEIGHT && inputs.is_pressed(KeyCode::T) {
 					for i in 0..DIM {
 						for j in 0..DIM {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
@@ -396,10 +392,31 @@ impl Water {
 			}
 		}
 	}
+
+	pub fn get_height(&self, store: &EntityStore, x: usize, y: usize) -> Option<f32> {
+		if let Some(ent_terrain) = store.get(self.terrain_id) {
+			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {
+				return Some(self.depths[x + y * DIM] + terrain.height_points()[x + y * DIM]);
+			}
+		}
+		return None;
+	}
+
+	pub fn add_depth(&mut self, x: usize, y: usize, inc: f32) {
+		self.depths[x + y * DIM] += inc;
+	}
+
+	pub fn get_avg_depth(&self) -> f32 {
+		self.avg_depth
+	}
 }
 
 impl Entity for Water {
 	fn as_any(&self) -> &dyn Any {
+		self
+	}
+
+	fn as_any_mut(&mut self) -> &mut dyn Any {
 		self
 	}
 

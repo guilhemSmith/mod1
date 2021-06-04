@@ -5,13 +5,14 @@ use std::collections::hash_set;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
-pub trait Entity: Debug {
+pub trait Entity: Debug + Any {
 	fn update(&mut self, _delta: f32, _inputs: &Inputs, _store: &EntityStore) {}
 	fn start(&mut self, _store: &EntityStore) {}
 	fn as_renderable(&self) -> Option<&dyn Renderable> {
 		return None;
 	}
 	fn as_any(&self) -> &dyn Any;
+	fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
 pub struct EntityStore {

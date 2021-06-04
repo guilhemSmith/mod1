@@ -95,7 +95,7 @@ impl RendererBuilder {
 			gl::CullFace(gl::FRONT);
 			gl::FrontFace(gl::CCW);
 
-			gl::PointSize(5.0);
+			gl::PointSize(2.0);
 
 			gl::GenFramebuffers(1, &mut fbo);
 			gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
