@@ -1,9 +1,8 @@
 use super::{Camera, EngineError, Entity, Renderable, Renderer};
-use crate::{engine_error, map_engine_error};
+use crate::engine_error;
 use gl::types::*;
 use glam::Vec3;
 use std::any::Any;
-use std::ffi::CString;
 use std::mem;
 use std::os::raw::c_void;
 use std::ptr;
@@ -234,35 +233,11 @@ impl Renderable for Mesh {
 		let projection = camera.perspective();
 		let view_pos = camera.pos();
 		shader_program.use_program();
+		shader_program.load_uniform_matrix_4fv("model", model)?;
+		shader_program.load_uniform_matrix_4fv("view", view)?;
+		shader_program.load_uniform_matrix_4fv("projection", projection)?;
+		shader_program.load_uniform_3fv("viewPos", view_pos)?;
 		unsafe {
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("model"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, model.as_ref().as_ptr());
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("view"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, view.as_ref().as_ptr());
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("projection"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, projection.as_ref().as_ptr());
-			let uniform_loc = gl::GetUniformLocation(
-				shader_program.id(),
-				map_engine_error!(CString::new("viewPos"), BadCString)?
-					.as_c_str()
-					.as_ptr(),
-			);
-			gl::Uniform3f(uniform_loc, view_pos.x, view_pos.y, view_pos.z);
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}

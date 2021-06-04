@@ -1,4 +1,5 @@
 use gl::types::*;
+use glam::{Mat4, Vec3};
 
 use super::EngineError;
 use crate::{engine_error, map_engine_error};
@@ -44,8 +45,35 @@ impl ShaderProgram {
 			gl::UseProgram(self.id);
 		}
 	}
+
 	pub fn id(&self) -> u32 {
 		self.id
+	}
+
+	pub fn load_uniform_matrix_4fv(&self, name: &str, matrix: Mat4) -> Result<(), EngineError> {
+		unsafe {
+			let uniform_loc = gl::GetUniformLocation(
+				self.id,
+				map_engine_error!(CString::new(name), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::UniformMatrix4fv(uniform_loc, 1, gl::FALSE, matrix.as_ref().as_ptr());
+		}
+		return Ok(());
+	}
+
+	pub fn load_uniform_3fv(&self, name: &str, vec: Vec3) -> Result<(), EngineError> {
+		unsafe {
+			let uniform_loc = gl::GetUniformLocation(
+				self.id,
+				map_engine_error!(CString::new(name), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::Uniform3f(uniform_loc, vec.x, vec.z, vec.y);
+		}
+		return Ok(());
 	}
 }
 
