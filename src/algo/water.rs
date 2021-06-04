@@ -349,9 +349,9 @@ impl Water {
 			}
 		}
 
-		if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::R) {
-			self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
-		}
+		// if self.avg_depth < MAX_HEIGHT && inputs.is_pressed(KeyCode::R) {
+		// 	self.depths[rand::random::<usize>() % (DIM * DIM)] += 1.0;
+		// }
 
 		if let Some(ent_terrain) = store.get(self.terrain_id) {
 			if let Some(terrain) = ent_terrain.as_any().downcast_ref::<HeightMap>() {

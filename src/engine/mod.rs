@@ -3,6 +3,7 @@ mod entities;
 mod error;
 mod input;
 mod mesh;
+mod mesh_points;
 mod render;
 mod shader_program;
 
@@ -11,6 +12,7 @@ pub use entities::{Entity, EntityStore};
 pub use error::EngineError;
 pub use input::{ClickButton, Inputs, KeyCode};
 pub use mesh::Mesh;
+pub use mesh_points::MeshPoints;
 pub use render::{Renderable, Renderer, RendererBuilder};
 pub use shader_program::ShaderProgram;
 

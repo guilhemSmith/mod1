@@ -3,8 +3,8 @@ mod engine;
 
 use glam::Vec3;
 
-use algo::HeightMap;
-use engine::{Camera, EntityStore, Mesh, PolygonMode};
+use algo::{HeightMap, Rain};
+use engine::{Camera, EntityStore, Mesh, MeshPoints, PolygonMode};
 
 fn main() {
     match exec_main() {
@@ -46,12 +46,21 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     renderer.load_shader("water");
     let water_vert = Mesh::heights_gen_vertices(algo::DIM, &vec![-0.1; algo::DIM * algo::DIM]);
     let water_mesh = Box::new(Mesh::new("water", &water_vert, algo::DIM, false, false));
-    let water_id = entities.insert(water_mesh);
+    let water_mesh_id = entities.insert(water_mesh);
     let border_vert = Mesh::wall_gen_vertices(&vec![Vec3::ZERO; 800]);
     let border_mesh = Box::new(Mesh::new("water", &border_vert, algo::DIM, false, false));
     let border_id = entities.insert(border_mesh);
-    let water = algo::Water::new(water_id, terrain_id, border_id);
-    entities.insert(Box::new(water));
+    let water = algo::Water::new(water_mesh_id, terrain_id, border_id);
+    let water_id = entities.insert(Box::new(water));
+
+    renderer.load_shader("rain");
+    let rain_vert =
+        MeshPoints::points_vertices(&vec![Vec3::new(50.0, 50.0, -1.0); Rain::MAX_COUNT]);
+    let rain_mesh = Box::new(MeshPoints::new("rain", &rain_vert, algo::DIM, false, false));
+    let rain_id = entities.insert(rain_mesh);
+    let rain = Rain::new(rain_id, water_id);
+    entities.insert(Box::new(rain));
+
     let proxy = event_loop.create_proxy();
     event_loop.run(engine::core_loop(renderer, entities, proxy));
 }
