@@ -37,7 +37,7 @@ impl Camera {
 			yaw: 0.0,
 			pitch: f32::to_radians(45.0),
 			dist: 75.0,
-			speed: 20.0,
+			speed: 2.0,
 			zoom_coef: DIST_SPEED * if zoom_natural { -1.0 } else { 1.0 },
 			mode: mode.unwrap_or(PolygonMode::Face),
 		}

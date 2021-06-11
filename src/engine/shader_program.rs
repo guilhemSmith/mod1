@@ -55,6 +55,7 @@ impl ShaderProgram {
 		self.id
 	}
 
+	#[allow(dead_code)]
 	pub fn load_uniform_matrix_4fv(&self, name: &str, matrix: Mat4) -> Result<(), EngineError> {
 		unsafe {
 			let uniform_loc = gl::GetUniformLocation(
@@ -68,6 +69,7 @@ impl ShaderProgram {
 		return Ok(());
 	}
 
+	#[allow(dead_code)]
 	pub fn load_uniform_3fv(&self, name: &str, vec: Vec3) -> Result<(), EngineError> {
 		unsafe {
 			let uniform_loc = gl::GetUniformLocation(
@@ -77,6 +79,34 @@ impl ShaderProgram {
 					.as_ptr(),
 			);
 			gl::Uniform3f(uniform_loc, vec.x, vec.y, vec.z);
+		}
+		return Ok(());
+	}
+
+	#[allow(dead_code)]
+	pub fn load_uniform_fv(&self, name: &str, val: f32) -> Result<(), EngineError> {
+		unsafe {
+			let uniform_loc = gl::GetUniformLocation(
+				self.id,
+				map_engine_error!(CString::new(name), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::Uniform1f(uniform_loc, val);
+		}
+		return Ok(());
+	}
+
+	#[allow(dead_code)]
+	pub fn load_uniform_iv(&self, name: &str, val: i32) -> Result<(), EngineError> {
+		unsafe {
+			let uniform_loc = gl::GetUniformLocation(
+				self.id,
+				map_engine_error!(CString::new(name), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::Uniform1i(uniform_loc, val);
 		}
 		return Ok(());
 	}

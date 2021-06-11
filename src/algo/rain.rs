@@ -18,7 +18,7 @@ impl Rain {
 
 	pub fn new(store: &EntityStore, water_id: u128) -> Self {
 		let rain_vert =
-			MeshPoints::points_vertices(&vec![Vec3::new(50.0, 50.0, -1.0); Rain::MAX_COUNT]);
+			MeshPoints::points_vertices(&vec![Vec3::new(50.0, 50.0, -100.0); Rain::MAX_COUNT]);
 		let rain_mesh = Box::new(MeshPoints::new("rain", &rain_vert, DIM, false, false));
 		let mesh_id = store.to_new_queue(rain_mesh);
 		Rain {
@@ -76,7 +76,7 @@ impl Rain {
 				let mut dead_droplet = HashSet::new();
 				for id in 0..self.droplets.len() {
 					let droplet = &mut self.droplets[id];
-					droplet.z -= delta * G * 100.0;
+					droplet.z -= delta * G * 10.0;
 					match water.get_height(store, droplet.x as usize, droplet.y as usize) {
 						Some(height) if height < droplet.z => continue,
 						Some(_) => water.add_depth(droplet.x as usize, droplet.y as usize, 1.0),

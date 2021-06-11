@@ -7,6 +7,7 @@ in vec3 normal;
 uniform sampler2D screenTexture;
 uniform vec3 viewPos;
 uniform vec3 lightPos;
+uniform int time;
 
 vec3 light_color(vec3 base_color, vec3 normal, vec3 fragPos, vec3 viewPos, vec3 lightPos, float specularStrength, int shininess);
 

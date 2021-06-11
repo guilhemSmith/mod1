@@ -147,6 +147,7 @@ impl RendererBuilder {
 			cam_key: None,
 			opaque_frame_buffer: fbo,
 			opaque_screen_text: tcb,
+			time: 0.0,
 		})
 	}
 }
@@ -157,10 +158,12 @@ pub struct Renderer {
 	cam_key: Option<u128>,
 	opaque_frame_buffer: u32,
 	opaque_screen_text: u32,
+	time: f32,
 }
 
 impl Renderer {
-	pub fn run(&self, store: &EntityStore) -> bool {
+	pub fn run(&mut self, store: &EntityStore, delta_time: f32) -> bool {
+		self.time += delta_time;
 		unsafe {
 			gl::BindFramebuffer(gl::FRAMEBUFFER, self.opaque_frame_buffer);
 		}
@@ -281,5 +284,8 @@ impl Renderer {
 			true,
 			true,
 		)
+	}
+	pub fn time(&self) -> f32 {
+		self.time
 	}
 }

@@ -23,7 +23,7 @@ use glutin::{
 use std::time;
 
 pub fn core_loop(
-	renderer: Renderer,
+	mut renderer: Renderer,
 	mut entities: EntityStore,
 	_event_proxy: EventLoopProxy<()>,
 ) -> Box<dyn FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow)> {
@@ -53,11 +53,14 @@ pub fn core_loop(
 				_ => (),
 			},
 			Event::RedrawRequested(_) => {
-				let delta = time::Instant::now().duration_since(last_draw).as_micros();
-				entities.update(f32::min(10000.0, delta as f32) / 1000000.0, &inputs);
+				let delta = f32::min(
+					10000.0,
+					time::Instant::now().duration_since(last_draw).as_micros() as f32,
+				) / 100000.0;
+				entities.update(delta, &inputs);
 				inputs.update();
 				last_draw = time::Instant::now();
-				if !renderer.run(&mut entities) {
+				if !renderer.run(&mut entities, delta) {
 					*flow = ControlFlow::Exit;
 				}
 			}
