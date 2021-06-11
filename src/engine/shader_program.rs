@@ -71,7 +71,7 @@ impl ShaderProgram {
 					.as_c_str()
 					.as_ptr(),
 			);
-			gl::Uniform3f(uniform_loc, vec.x, vec.z, vec.y);
+			gl::Uniform3f(uniform_loc, vec.x, vec.y, vec.z);
 		}
 		return Ok(());
 	}

@@ -224,6 +224,7 @@ impl Renderable for Mesh {
 			format!("Shader '{}' is missing", self.shader_name)
 		))?;
 		let pos = glam::Vec3::new(-self.offset, 0.0, -self.offset);
+		// let pos = glam::Vec3::ZERO;
 		let model = glam::Mat4::from_scale_rotation_translation(
 			glam::Vec3::new(1.0, 1.0, 1.0),
 			glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
@@ -232,7 +233,7 @@ impl Renderable for Mesh {
 		let view = camera.view();
 		let projection = camera.perspective();
 		let view_pos = camera.pos();
-		let light_pos = Vec3::new(0.0, 0.0, 50.0);
+		let light_pos = Vec3::new(0.0, 50.0, 0.0);
 		shader_program.use_program();
 		shader_program.load_uniform_matrix_4fv("model", model)?;
 		shader_program.load_uniform_matrix_4fv("view", view)?;

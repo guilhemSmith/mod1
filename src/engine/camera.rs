@@ -71,7 +71,7 @@ impl Camera {
 			self.pitch.sin(),
 			self.yaw.sin() * self.pitch.cos(),
 		)
-		.normalize() * -self.dist
+		.normalize() * self.dist
 	}
 
 	fn change_render_mode(&mut self) {

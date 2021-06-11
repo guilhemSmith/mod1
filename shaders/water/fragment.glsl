@@ -35,7 +35,7 @@ vec3 light_color(vec3 base_color) {
    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
    vec3 specular = specularStrength * spec * lightColor;
 
-   return (ambient + diffuse) * base_color;
+   return (ambient + diffuse + specular) * base_color;
 }
 
 void main()
