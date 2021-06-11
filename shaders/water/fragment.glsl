@@ -5,6 +5,8 @@ in vec3 fragPos;
 in vec3 normal;
 
 uniform sampler2D screenTexture;
+// uniform sampler2D foamTexture;
+
 uniform vec3 viewPos;
 uniform vec3 lightPos;
 uniform vec2 viewportRes;

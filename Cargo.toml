@@ -11,7 +11,7 @@ gl = "0.14"
 glutin = "0.26"
 glam = "0.16"
 rand = "0.8"
-# noise = "0.7"
+noise = "0.7"
 
 [build-dependencies]
 fs_extra = "1.2"

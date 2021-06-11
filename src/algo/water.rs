@@ -2,6 +2,7 @@ use super::{HeightMap, Map, DIM, G};
 use crate::engine::{Entity, EntityStore, Inputs, KeyCode, Mesh};
 
 use glam::Vec3;
+use noise::{NoiseFn, Perlin};
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
@@ -26,11 +27,19 @@ impl Water {
 	pub const MAX_HEIGHT: f32 = 50.0;
 
 	pub fn new(store: &EntityStore, terrain_id: u128) -> Self {
+		let noise = Water::foam_noise();
 		let water_vert = Mesh::heights_gen_vertices(DIM, &vec![-0.1; DIM * DIM]);
-		let water_mesh = Box::new(Mesh::new("water", &water_vert, DIM, false, false));
+		let water_mesh = Box::new(Mesh::new(
+			"water",
+			&water_vert,
+			DIM,
+			false,
+			false,
+			Some(&noise),
+		));
 		let mesh_id = store.to_new_queue(water_mesh);
 		let border_vert = Mesh::wall_gen_vertices(&vec![Vec3::ZERO; 800]);
-		let border_mesh = Box::new(Mesh::new("water", &border_vert, DIM, false, false));
+		let border_mesh = Box::new(Mesh::new("water", &border_vert, DIM, false, false, None));
 		let border_id = store.to_new_queue(border_mesh);
 		Water {
 			mesh_id,
@@ -41,6 +50,20 @@ impl Water {
 			pipes_x: [0.0; P_MAP_SIZE],
 			avg_depth: 0.0,
 		}
+	}
+
+	fn foam_noise() -> Vec<f32> {
+		let noise = Perlin::new();
+		let mut map = Vec::with_capacity(1000 * 1000);
+		for x in 0..1000 {
+			for y in 0..1000 {
+				let val = noise.get([x as f64, y as f64]);
+				map.push(val as f32);
+				map.push(val as f32);
+				map.push(val as f32);
+			}
+		}
+		return map;
 	}
 
 	fn update_pipes_flow(&mut self, delta_time: f32, store: &EntityStore) {

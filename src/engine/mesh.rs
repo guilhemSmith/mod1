@@ -12,6 +12,7 @@ pub struct Mesh {
 	vao: u32,
 	vbo: u32,
 	shader_name: String,
+	noise_texture: Option<u32>,
 	count: i32,
 	offset: f32,
 	opaque: bool,
@@ -24,11 +25,14 @@ impl Mesh {
 		dim: usize,
 		opaque: bool,
 		static_data: bool,
+		noise: Option<&Vec<f32>>,
 	) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
 		let count = vertices_flat.len() as i32;
 
 		let (mut vbo, mut vao) = (0, 0);
+		let mut noise_texture = None;
+
 		unsafe {
 			gl::GenVertexArrays(1, &mut vao);
 			gl::GenBuffers(1, &mut vbo);
@@ -45,6 +49,8 @@ impl Mesh {
 					gl::STREAM_DRAW
 				},
 			);
+
+			// coords
 			gl::VertexAttribPointer(
 				0,
 				3,
@@ -54,6 +60,8 @@ impl Mesh {
 				ptr::null(),
 			);
 			gl::EnableVertexAttribArray(0);
+
+			// normal
 			gl::VertexAttribPointer(
 				1,
 				3,
@@ -63,6 +71,27 @@ impl Mesh {
 				(3 * mem::size_of::<GLfloat>()) as *mut _,
 			);
 			gl::EnableVertexAttribArray(1);
+
+			if let Some(noise_data) = noise {
+				// noise texture
+				let mut noise_buffer = 0;
+				gl::GenTextures(1, &mut noise_buffer);
+				gl::BindTexture(gl::TEXTURE_2D, noise_buffer);
+				gl::TexImage2D(
+					gl::TEXTURE_2D,
+					0,
+					gl::RGB as i32,
+					1000,
+					1000,
+					0,
+					gl::RGB,
+					gl::UNSIGNED_BYTE,
+					&noise_data[0] as *const f32 as *const c_void,
+				);
+				gl::GenerateMipmap(gl::TEXTURE_2D);
+				noise_texture = Some(noise_buffer);
+			}
+
 			gl::BindBuffer(gl::ARRAY_BUFFER, 0);
 			gl::BindVertexArray(0);
 		}
@@ -71,6 +100,7 @@ impl Mesh {
 			vao,
 			vbo,
 			shader_name: String::from(shader_name),
+			noise_texture,
 			count,
 			offset,
 			opaque,
@@ -224,7 +254,6 @@ impl Renderable for Mesh {
 			format!("Shader '{}' is missing", self.shader_name)
 		))?;
 		let pos = glam::Vec3::new(-self.offset, 0.0, -self.offset);
-		// let pos = glam::Vec3::ZERO;
 		let model = glam::Mat4::from_scale_rotation_translation(
 			glam::Vec3::new(1.0, 1.0, 1.0),
 			glam::Quat::from_axis_angle(glam::Vec3::Y, 0.0),
@@ -243,6 +272,9 @@ impl Renderable for Mesh {
 		shader_program.load_uniform_2fv("viewportRes", renderer.viewport_res())?;
 		shader_program.load_uniform_iv("time", (renderer.time() * 1000.0) as i32)?;
 		unsafe {
+			if let Some(noise_texture) = self.noise_texture {
+				gl::BindTexture(gl::TEXTURE_2D, noise_texture);
+			}
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}

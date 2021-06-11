@@ -147,9 +147,9 @@ impl Entity for HeightMap {
 
 	fn start(&mut self, store: &EntityStore) {
 		let terrain_vert = Mesh::heights_gen_vertices(DIM, &Vec::from(self.points));
-		let terrain_mesh = Box::new(Mesh::new("terrain", &terrain_vert, DIM, true, true));
+		let terrain_mesh = Box::new(Mesh::new("terrain", &terrain_vert, DIM, true, true, None));
 		let border_vert = Mesh::wall_gen_vertices(&self.border_wall());
-		let border_mesh = Box::new(Mesh::new("border", &border_vert, DIM, true, true));
+		let border_mesh = Box::new(Mesh::new("border", &border_vert, DIM, true, true, None));
 		store.to_new_queue(terrain_mesh);
 		store.to_new_queue(border_mesh);
 	}
