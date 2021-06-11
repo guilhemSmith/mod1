@@ -232,11 +232,13 @@ impl Renderable for Mesh {
 		let view = camera.view();
 		let projection = camera.perspective();
 		let view_pos = camera.pos();
+		let light_pos = Vec3::new(0.0, 0.0, 50.0);
 		shader_program.use_program();
 		shader_program.load_uniform_matrix_4fv("model", model)?;
 		shader_program.load_uniform_matrix_4fv("view", view)?;
 		shader_program.load_uniform_matrix_4fv("projection", projection)?;
 		shader_program.load_uniform_3fv("viewPos", view_pos)?;
+		shader_program.load_uniform_3fv("lightPos", light_pos)?;
 		unsafe {
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);

@@ -16,6 +16,7 @@ fn load_shaders(renderer: &mut Renderer) {
     renderer.load_shader("border");
     renderer.load_shader("water");
     renderer.load_shader("rain");
+    renderer.load_shader("light");
 }
 
 fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,13 +29,23 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     let mut renderer = engine::RendererBuilder::new()
         .title("mod1")
         .size((1280, 720))
-        .resizable(true)
+        .resizable(false)
         .build(&event_loop)?;
     let mut entities = EntityStore::new();
+
     let cam = Box::new(Camera::new(true, Some(PolygonMode::Face)));
     let cam_key = entities.insert(cam);
     renderer.set_cam(Some(cam_key));
     load_shaders(&mut renderer);
+
+    let light = engine::MeshPoints::new(
+        "light",
+        &engine::MeshPoints::points_vertices(&vec![glam::Vec3::new(50.0, 50.0, 50.0)]),
+        algo::DIM,
+        true,
+        true,
+    );
+    entities.insert(Box::new(light));
 
     let terrain = Box::new(HeightMap::new(&file_arg)?);
     let terrain_id = entities.insert(terrain);

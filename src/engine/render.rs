@@ -213,7 +213,7 @@ impl Renderer {
 		self.cam_key = key;
 	}
 
-	pub fn clear(&self) {
+	fn clear(&self) {
 		unsafe {
 			gl::ClearColor(0.0, 0.0, 0.0, 1.0);
 			gl::ClearDepth(1.0);
@@ -221,12 +221,12 @@ impl Renderer {
 		}
 	}
 
-	pub fn swap(&self) -> Result<(), EngineError> {
+	fn swap(&self) -> Result<(), EngineError> {
 		let err_msg = String::from("Failed to swap GL buffer");
 		map_engine_error!(self.gl_window.swap_buffers(), GLError, err_msg)
 	}
 
-	pub fn render(&self, obj: &dyn Renderable, entities: &EntityStore) -> Result<(), EngineError> {
+	fn render(&self, obj: &dyn Renderable, entities: &EntityStore) -> Result<(), EngineError> {
 		if let Some(key) = self.cam_key {
 			if let Some(camera_entity) = entities.get(key) {
 				if let Some(camera) = camera_entity.as_any().downcast_ref::<Camera>() {
