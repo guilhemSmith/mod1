@@ -37,7 +37,8 @@ impl ShaderProgram {
 	pub fn new(name: &str) -> Result<Self, EngineError> {
 		let vertex_shader = compile_shader(name, ShaderType::Vertex)?;
 		let fragment_shader = compile_shader(name, ShaderType::Fragment)?;
-		let shader_program = link_shaders(vertex_shader, fragment_shader)?;
+		let light_shader = compile_shader("compute_light", ShaderType::Fragment)?;
+		let shader_program = link_shaders(vertex_shader, Some(light_shader), fragment_shader)?;
 		Ok(ShaderProgram { id: shader_program })
 	}
 	pub fn use_program(&self) {
@@ -113,10 +114,17 @@ fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, EngineErro
 	}
 }
 
-fn link_shaders(vertex_shader: u32, fragment_shader: u32) -> Result<u32, EngineError> {
+fn link_shaders(
+	vertex_shader: u32,
+	light_shader: Option<u32>,
+	fragment_shader: u32,
+) -> Result<u32, EngineError> {
 	unsafe {
 		let shader_program = gl::CreateProgram();
 		gl::AttachShader(shader_program, vertex_shader);
+		if let Some(light) = light_shader {
+			gl::AttachShader(shader_program, light);
+		}
 		gl::AttachShader(shader_program, fragment_shader);
 		gl::LinkProgram(shader_program);
 		gl::DeleteShader(vertex_shader);
