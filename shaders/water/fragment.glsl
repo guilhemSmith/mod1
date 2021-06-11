@@ -7,6 +7,7 @@ in vec3 normal;
 uniform sampler2D screenTexture;
 uniform vec3 viewPos;
 uniform vec3 lightPos;
+uniform vec2 viewportRes;
 uniform int time;
 
 vec3 light_color(vec3 base_color, vec3 normal, vec3 fragPos, vec3 viewPos, vec3 lightPos, float specularStrength, int shininess);
@@ -19,7 +20,7 @@ float linearize_depth(float zoverw){
 
 void main()
 {
-   vec2 uv = gl_FragCoord.xy / vec2(1280.0, 720.0);
+   vec2 uv = gl_FragCoord.xy / viewportRes;
    float depth = texture(screenTexture, uv).r;
 	depth = linearize_depth(depth);
    float height = linearize_depth(gl_FragCoord.z);

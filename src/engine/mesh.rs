@@ -240,6 +240,7 @@ impl Renderable for Mesh {
 		shader_program.load_uniform_matrix_4fv("projection", projection)?;
 		shader_program.load_uniform_3fv("viewPos", view_pos)?;
 		shader_program.load_uniform_3fv("lightPos", light_pos)?;
+		shader_program.load_uniform_2fv("viewportRes", renderer.viewport_res())?;
 		shader_program.load_uniform_iv("time", (renderer.time() * 1000.0) as i32)?;
 		unsafe {
 			gl::BindVertexArray(self.vao);

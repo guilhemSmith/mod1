@@ -1,5 +1,5 @@
 use gl::types::*;
-use glam::{Mat4, Vec3};
+use glam::{Mat4, Vec2, Vec3};
 
 use super::EngineError;
 use crate::{engine_error, map_engine_error};
@@ -79,6 +79,20 @@ impl ShaderProgram {
 					.as_ptr(),
 			);
 			gl::Uniform3f(uniform_loc, vec.x, vec.y, vec.z);
+		}
+		return Ok(());
+	}
+
+	#[allow(dead_code)]
+	pub fn load_uniform_2fv(&self, name: &str, vec: Vec2) -> Result<(), EngineError> {
+		unsafe {
+			let uniform_loc = gl::GetUniformLocation(
+				self.id,
+				map_engine_error!(CString::new(name), BadCString)?
+					.as_c_str()
+					.as_ptr(),
+			);
+			gl::Uniform2f(uniform_loc, vec.x, vec.y);
 		}
 		return Ok(());
 	}

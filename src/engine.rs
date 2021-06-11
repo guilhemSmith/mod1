@@ -29,6 +29,7 @@ pub fn core_loop(
 ) -> Box<dyn FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow)> {
 	let mut inputs = Inputs::new();
 	let mut last_draw = time::Instant::now();
+	let mut last_update = time::Instant::now();
 	Box::new(move |event, _target, flow: &mut ControlFlow| {
 		*flow = ControlFlow::Poll;
 
@@ -54,22 +55,30 @@ pub fn core_loop(
 			},
 			Event::RedrawRequested(_) => {
 				let delta = f32::min(
-					10000.0,
+					8333.0,
 					time::Instant::now().duration_since(last_draw).as_micros() as f32,
 				) / 100000.0;
-				entities.update(delta, &inputs);
-				inputs.update();
 				last_draw = time::Instant::now();
 				if !renderer.run(&mut entities, delta) {
 					*flow = ControlFlow::Exit;
 				}
 			}
 			Event::UserEvent(_) => {}
+			Event::MainEventsCleared => {
+				let delta = f32::min(
+					8333.0,
+					time::Instant::now().duration_since(last_update).as_micros() as f32,
+				) / 100000.0;
+				if delta >= 0.08333 {
+					entities.update(delta, &inputs);
+					inputs.update();
+					last_update = time::Instant::now();
+				}
+				if time::Instant::now().duration_since(last_draw).as_micros() >= 8333 {
+					renderer.window().request_redraw();
+				}
+			}
 			_ => {}
-		}
-
-		if time::Instant::now().duration_since(last_draw).as_micros() >= 8333 {
-			renderer.window().request_redraw();
 		}
 	})
 }

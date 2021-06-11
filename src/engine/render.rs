@@ -1,7 +1,7 @@
 use super::{Camera, EngineError, EntityStore, MeshPoints, ShaderProgram};
 use crate::{engine_error, map_engine_error};
 use gl::types::*;
-use glam::Vec3;
+use glam::{Vec2, Vec3};
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -145,6 +145,7 @@ impl RendererBuilder {
 			gl_window,
 			shaders: HashMap::new(),
 			cam_key: None,
+			viewport_res: Vec2::new(self.size.width as f32, self.size.height as f32),
 			opaque_frame_buffer: fbo,
 			opaque_screen_text: tcb,
 			time: 0.0,
@@ -156,6 +157,7 @@ pub struct Renderer {
 	gl_window: ContextWrapper<PossiblyCurrent, Window>,
 	shaders: HashMap<String, ShaderProgram>,
 	cam_key: Option<u128>,
+	viewport_res: Vec2,
 	opaque_frame_buffer: u32,
 	opaque_screen_text: u32,
 	time: f32,
@@ -246,11 +248,12 @@ impl Renderer {
 		}
 	}
 
-	pub fn resize(&self, size: PhysicalSize<u32>) {
+	pub fn resize(&mut self, size: PhysicalSize<u32>) {
 		self.gl_window.resize(size);
 		unsafe {
 			gl::Viewport(0, 0, size.width as i32, size.height as i32);
 		}
+		self.viewport_res = Vec2::new(size.width as f32, size.height as f32);
 	}
 
 	pub fn load_shader(&mut self, name: &str, light: bool) {
@@ -287,5 +290,9 @@ impl Renderer {
 	}
 	pub fn time(&self) -> f32 {
 		self.time
+	}
+
+	pub fn viewport_res(&self) -> Vec2 {
+		self.viewport_res
 	}
 }
