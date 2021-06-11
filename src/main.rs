@@ -12,11 +12,11 @@ fn main() {
 }
 
 fn load_shaders(renderer: &mut Renderer) {
-    renderer.load_shader("terrain");
-    renderer.load_shader("border");
-    renderer.load_shader("water");
-    renderer.load_shader("rain");
-    renderer.load_shader("light");
+    renderer.load_shader("terrain", true);
+    renderer.load_shader("border", true);
+    renderer.load_shader("water", true);
+    renderer.load_shader("rain", false);
+    renderer.load_shader("sun", false);
 }
 
 fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,7 +39,7 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     load_shaders(&mut renderer);
 
     let light = engine::MeshPoints::new(
-        "light",
+        "sun",
         &engine::MeshPoints::points_vertices(&vec![glam::Vec3::new(50.0, 50.0, 50.0)]),
         algo::DIM,
         true,

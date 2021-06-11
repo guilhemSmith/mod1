@@ -34,11 +34,15 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-	pub fn new(name: &str) -> Result<Self, EngineError> {
+	pub fn new(name: &str, light: bool) -> Result<Self, EngineError> {
 		let vertex_shader = compile_shader(name, ShaderType::Vertex)?;
 		let fragment_shader = compile_shader(name, ShaderType::Fragment)?;
-		let light_shader = compile_shader("compute_light", ShaderType::Fragment)?;
-		let shader_program = link_shaders(vertex_shader, Some(light_shader), fragment_shader)?;
+		let light_shader = if light {
+			Some(compile_shader("light", ShaderType::Fragment)?)
+		} else {
+			None
+		};
+		let shader_program = link_shaders(vertex_shader, light_shader, fragment_shader)?;
 		Ok(ShaderProgram { id: shader_program })
 	}
 	pub fn use_program(&self) {

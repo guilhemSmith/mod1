@@ -249,8 +249,8 @@ impl Renderer {
 		}
 	}
 
-	pub fn load_shader(&mut self, name: &str) {
-		match ShaderProgram::new(name) {
+	pub fn load_shader(&mut self, name: &str, light: bool) {
+		match ShaderProgram::new(name, light) {
 			Ok(shader) => {
 				self.shaders.insert(String::from(name), shader);
 			}
