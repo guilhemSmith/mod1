@@ -120,18 +120,21 @@ fn compile_shader(name: &str, shader_type: ShaderType) -> Result<u32, EngineErro
 
 fn link_shaders(
 	vertex_shader: u32,
-	light_shader: Option<u32>,
+	light: Option<u32>,
 	fragment_shader: u32,
 ) -> Result<u32, EngineError> {
 	unsafe {
 		let shader_program = gl::CreateProgram();
 		gl::AttachShader(shader_program, vertex_shader);
-		if let Some(light) = light_shader {
-			gl::AttachShader(shader_program, light);
+		if let Some(light_shader) = light {
+			gl::AttachShader(shader_program, light_shader);
 		}
 		gl::AttachShader(shader_program, fragment_shader);
 		gl::LinkProgram(shader_program);
 		gl::DeleteShader(vertex_shader);
+		if let Some(light_shader) = light {
+			gl::DeleteShader(light_shader);
+		}
 		gl::DeleteShader(fragment_shader);
 		let mut success = i32::from(gl::FALSE);
 		let mut info_log = Vec::with_capacity(512);
