@@ -233,7 +233,7 @@ impl Renderable for Mesh {
 		let view = camera.view();
 		let projection = camera.perspective();
 		let view_pos = camera.pos();
-		let light_pos = Vec3::new(0.0, 50.0, 0.0);
+		let light_pos = renderer.light_pos();
 		shader_program.use_program();
 		shader_program.load_uniform_matrix_4fv("model", model)?;
 		shader_program.load_uniform_matrix_4fv("view", view)?;

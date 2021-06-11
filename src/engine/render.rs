@@ -1,6 +1,7 @@
-use super::{Camera, EngineError, EntityStore, ShaderProgram};
+use super::{Camera, EngineError, EntityStore, MeshPoints, ShaderProgram};
 use crate::{engine_error, map_engine_error};
 use gl::types::*;
+use glam::Vec3;
 use glutin::{
 	dpi::PhysicalSize,
 	event_loop::EventLoop,
@@ -266,5 +267,19 @@ impl Renderer {
 
 	pub fn window(&self) -> &Window {
 		self.gl_window.window()
+	}
+
+	pub fn light_pos(&self) -> Vec3 {
+		Vec3::new(75.0, 60.0, 0.0)
+	}
+
+	pub fn light_source(&self, dim: usize) -> MeshPoints {
+		MeshPoints::new(
+			"sun",
+			&MeshPoints::points_vertices(&vec![glam::Vec3::new(125.0, 60.0, 50.0)]),
+			dim,
+			true,
+			true,
+		)
 	}
 }

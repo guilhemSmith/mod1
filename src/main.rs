@@ -38,13 +38,7 @@ fn exec_main() -> Result<(), Box<dyn std::error::Error>> {
     renderer.set_cam(Some(cam_key));
     load_shaders(&mut renderer);
 
-    let light = engine::MeshPoints::new(
-        "sun",
-        &engine::MeshPoints::points_vertices(&vec![glam::Vec3::new(50.0, 50.0, 50.0)]),
-        algo::DIM,
-        true,
-        true,
-    );
+    let light = renderer.light_source(algo::DIM);
     entities.insert(Box::new(light));
 
     let terrain = Box::new(HeightMap::new(&file_arg)?);
