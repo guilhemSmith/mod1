@@ -62,7 +62,7 @@ impl Rain {
 					}
 					for id in self.droplets.len()..Rain::MAX_COUNT {
 						data[id * 3 + 0] = 50.0;
-						data[id * 3 + 1] = -1.0;
+						data[id * 3 + 1] = -100.0;
 						data[id * 3 + 2] = 50.0;
 					}
 				});
