@@ -4,8 +4,8 @@ out vec4 FragColor;
 in vec3 fragPos;
 in vec3 normal;
 
-uniform sampler2D screenTexture;
-// uniform sampler2D foamTexture;
+uniform sampler2D depthTexture;
+uniform sampler2D foamTexture;
 
 uniform vec3 viewPos;
 uniform vec3 lightPos;
@@ -23,7 +23,7 @@ float linearize_depth(float zoverw){
 void main()
 {
    vec2 uv = gl_FragCoord.xy / viewportRes;
-   float depth = texture(screenTexture, uv).r;
+   float depth = texture(depthTexture, uv).r;
 	depth = linearize_depth(depth);
    float height = linearize_depth(gl_FragCoord.z);
    float delta = depth - height;

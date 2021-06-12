@@ -2,7 +2,7 @@ use super::{HeightMap, Map, DIM, G};
 use crate::engine::{Entity, EntityStore, Inputs, KeyCode, Mesh};
 
 use glam::Vec3;
-use noise::{NoiseFn, Perlin};
+use noise::{utils::*, NoiseFn, Perlin, Seedable};
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
@@ -53,11 +53,18 @@ impl Water {
 	}
 
 	fn foam_noise() -> Vec<f32> {
-		let noise = Perlin::new();
+		let perlin = Perlin::default().set_seed(rand::random::<u32>());
+
+		PlaneMapBuilder::new(&perlin)
+			.set_size(1000, 1000)
+			.set_x_bounds(-5.0, 5.0)
+			.set_y_bounds(-5.0, 5.0)
+			.build()
+			.write_to_file("perlin.png");
 		let mut map = Vec::with_capacity(1000 * 1000);
 		for x in 0..1000 {
 			for y in 0..1000 {
-				let val = noise.get([x as f64, y as f64]);
+				let val = perlin.get([x as f64 / 1000.0, y as f64 / 1000.0]);
 				map.push(val as f32);
 				map.push(val as f32);
 				map.push(val as f32);

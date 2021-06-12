@@ -194,9 +194,6 @@ impl Renderer {
 				}
 			}
 		}
-		unsafe {
-			gl::BindTexture(gl::TEXTURE_2D, self.opaque_screen_text);
-		}
 		for key in store.transparent_renderables_keys() {
 			if let Some(entity) = store.get(*key) {
 				if let Some(renderable) = entity.as_renderable() {
@@ -213,6 +210,13 @@ impl Renderer {
 		} else {
 			true
 		};
+	}
+
+	pub fn bind_depth_texture(&self) {
+		unsafe {
+			gl::ActiveTexture(gl::TEXTURE0 + 0);
+			gl::BindTexture(gl::TEXTURE_2D, self.opaque_screen_text);
+		}
 	}
 
 	pub fn set_cam(&mut self, key: Option<u128>) {

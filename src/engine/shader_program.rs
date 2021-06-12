@@ -55,6 +55,20 @@ impl ShaderProgram {
 		self.id
 	}
 
+	// #[allow(dead_code)]
+	// pub fn load_texture(&self, name: &str, texture_id: u32) -> Result<(), EngineError> {
+	// 	unsafe {
+	// 		let uniform_loc = gl::GetUniformLocation(
+	// 			self.id,
+	// 			map_engine_error!(CString::new(name), BadCString)?
+	// 				.as_c_str()
+	// 				.as_ptr(),
+	// 		);
+	// 		gl::Uniform1i
+	// 	}
+	// 	return Ok(());
+	// }
+
 	#[allow(dead_code)]
 	pub fn load_uniform_matrix_4fv(&self, name: &str, matrix: Mat4) -> Result<(), EngineError> {
 		unsafe {

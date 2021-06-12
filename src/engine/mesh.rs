@@ -271,10 +271,18 @@ impl Renderable for Mesh {
 		shader_program.load_uniform_3fv("lightPos", light_pos)?;
 		shader_program.load_uniform_2fv("viewportRes", renderer.viewport_res())?;
 		shader_program.load_uniform_iv("time", (renderer.time() * 1000.0) as i32)?;
-		unsafe {
-			if let Some(noise_texture) = self.noise_texture {
+		if !self.opaque {
+			shader_program.load_uniform_iv("depthTexture", 0)?;
+			renderer.bind_depth_texture();
+		}
+		if let Some(noise_texture) = self.noise_texture {
+			shader_program.load_uniform_iv("foamTexture", 1)?;
+			unsafe {
+				gl::ActiveTexture(gl::TEXTURE0 + 1);
 				gl::BindTexture(gl::TEXTURE_2D, noise_texture);
 			}
+		}
+		unsafe {
 			gl::BindVertexArray(self.vao);
 			gl::DrawArrays(gl::TRIANGLES, 0, self.count);
 		}
