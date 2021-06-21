@@ -2,7 +2,7 @@ use super::{HeightMap, Map, DIM, G};
 use crate::engine::{Entity, EntityStore, Inputs, KeyCode, Mesh};
 
 use glam::Vec3;
-use noise::{NoiseFn, Seedable, Worley};
+use noise::{NoiseFn, Perlin, Seedable, Worley};
 use std::any::Any;
 
 const ZERO_DEPTH: f32 = 0.01;
@@ -52,35 +52,63 @@ impl Water {
 		}
 	}
 
-	fn foam_noise() -> [[u8; 3]; 1000 * 1000] {
-		let whorley = Worley::default().set_seed(rand::random::<u32>());
+	fn foam_noise() -> [[u8; 3]; 1024 * 1024] {
+		let whorley = Worley::default()
+			.set_frequency(10.0)
+			// .enable_range(true)
+			// .set_range_function(RangeFunction::EuclideanSquared)
+			.set_seed(rand::random::<u32>());
+		let perlin_x = Perlin::default().set_seed(rand::random::<u32>());
+		let perlin_y = Perlin::default().set_seed(rand::random::<u32>());
 
-		let edge_width = 1;
-		let mut map = [[0; 3]; 1000 * 1000];
-		for x in 0..1000 {
-			for y in 0..1000 {
-				let val = (whorley.get([
-					(x as i32 - 500) as f64 / 100.0,
-					(y as i32 - 500) as f64 / 100.0,
-				]) + 1.0) / 2.0;
-				let val_right = (whorley.get([
-					((x + edge_width) as i32 - 500) as f64 / 100.0,
-					(y as i32 - 500) as f64 / 100.0,
-				]) + 1.0) / 2.0;
-				let val_bot = (whorley.get([
-					(x as i32 - 500) as f64 / 100.0,
-					((y + edge_width) as i32 - 500) as f64 / 100.0,
-				]) + 1.0) / 2.0;
-				let d_x = (val - val_right).abs();
-				let d_y = (val - val_bot).abs();
-				if d_x + d_y > 0.0 {
-					map[x + y * 1000] = [255, 255, 255];
+		let edge_w = 3;
+		let scale = 1024.0;
+		let mut edge = [[0; 3]; 1024 * 1024];
+		for x in 0..1024 {
+			for y in 0..1024 {
+				let x_pr = if x >= edge_w {
+					x - edge_w
 				} else {
-					map[x + y * 1000] = [0, 0, 0];
+					1023 - x - edge_w
+				};
+				let x_nx = if x <= 1023 - edge_w {
+					x + edge_w
+				} else {
+					x + edge_w - 1023
+				};
+				let y_pr = if y >= edge_w {
+					y - edge_w
+				} else {
+					1023 - y - edge_w
+				};
+				let y_nx = if y <= 1023 - edge_w {
+					y + edge_w
+				} else {
+					y + edge_w - 1023
+				};
+				let val_l = (whorley.get([x_pr as f64 / scale, y as f64 / scale]) + 1.0) / 2.0;
+				let val_r = (whorley.get([x_nx as f64 / scale, y as f64 / scale]) + 1.0) / 2.0;
+				let val_top = (whorley.get([x as f64 / scale, y_pr as f64 / scale]) + 1.0) / 2.0;
+				let val_bot = (whorley.get([x as f64 / scale, y_nx as f64 / scale]) + 1.0) / 2.0;
+				let d_x = (val_l - val_r).abs();
+				let d_y = (val_top - val_bot).abs();
+				let noise_x = (((perlin_x
+					.get([x_pr as f64 / scale * 10.0, y as f64 / scale * 10.0])
+					+ 1.0) / 2.0) * 255.0) as u8;
+				let noise_y = (((perlin_y
+					.get([x_pr as f64 / scale * 10.0, y as f64 / scale * 10.0])
+					+ 1.0) / 2.0) * 255.0) as u8;
+				if d_x > 0.0 || d_y > 0.0 {
+					edge[(x + y * 1024) as usize] = [255, noise_x, noise_y];
+				} else {
+					edge[(x + y * 1024) as usize] = [0, noise_x, noise_y];
 				}
+				// let val =
+				// 	((whorley.get([x as f64 / scale, y as f64 / scale]) + 1.0) / 2.0 * 255.0) as u8;
+				// edge[(x + y * 1024) as usize] = [val, val, val];
 			}
 		}
-		return map;
+		return edge;
 	}
 
 	fn update_pipes_flow(&mut self, delta_time: f32, store: &EntityStore) {

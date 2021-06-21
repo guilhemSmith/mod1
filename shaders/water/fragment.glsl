@@ -30,7 +30,8 @@ void main()
    float delta = depth - height;
    float depth_fade = exp(-delta * 10.0);
    depth_fade = clamp(depth_fade, 0.0, 1.0);
-   float foam = texture(foamTexture, noiseCoord).r;
+   float foam = texture(foamTexture, texture(foamTexture, noiseCoord).gb / 25.0 + noiseCoord + vec2(sin(time * 0.00001), cos(time * 0.00001))).r;
+   FragColor = vec4(vec3(texture(foamTexture, noiseCoord).g), 1.0);
    if (normal.y == 0.0 || (delta > 0.005 && foam < 0.5)) {
       vec3 deep_color = vec3(0.05, 0.15, 0.15);
       vec3 shallow_color = vec3(0.1, 0.5, 0.6);

@@ -25,7 +25,7 @@ impl Mesh {
 		dim: usize,
 		opaque: bool,
 		static_data: bool,
-		noise: Option<&[[u8; 3]; 1000 * 1000]>,
+		noise: Option<&[[u8; 3]; 1024 * 1024]>,
 	) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
 		let count = vertices_flat.len() as i32;
@@ -81,8 +81,8 @@ impl Mesh {
 					gl::TEXTURE_2D,
 					0,
 					gl::RGB as i32,
-					1000,
-					1000,
+					1024,
+					1024,
 					0,
 					gl::RGB,
 					gl::UNSIGNED_BYTE,
