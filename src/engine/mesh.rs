@@ -25,7 +25,7 @@ impl Mesh {
 		dim: usize,
 		opaque: bool,
 		static_data: bool,
-		noise: Option<&Vec<f32>>,
+		noise: Option<&[[u8; 3]; 1000 * 1000]>,
 	) -> Self {
 		let offset = (dim - 1) as f32 * 0.5;
 		let count = vertices_flat.len() as i32;
@@ -86,7 +86,7 @@ impl Mesh {
 					0,
 					gl::RGB,
 					gl::UNSIGNED_BYTE,
-					&noise_data[0] as *const f32 as *const c_void,
+					noise_data as *const _ as *const c_void,
 				);
 				gl::GenerateMipmap(gl::TEXTURE_2D);
 				noise_texture = Some(noise_buffer);
