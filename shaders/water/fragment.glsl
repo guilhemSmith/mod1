@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec3 fragPos;
 in vec3 normal;
+in vec2 noiseCoord;
 
 uniform sampler2D depthTexture;
 uniform sampler2D foamTexture;
