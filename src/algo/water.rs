@@ -52,11 +52,47 @@ impl Water {
 		}
 	}
 
+	fn interpolate_noise(x: i32, y: i32, scale: f64, noise: &Perlin) -> u8 {
+		if x < 974 && y < 974 {
+			(((noise.get([x as f64 / scale * 10.0, y as f64 / scale * 10.0]) + 1.0) / 2.0) * 255.0)
+				as u8
+		} else {
+			if y < 974 {
+				let last =
+					(noise.get([974 as f64 / scale * 10.0, y as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let first =
+					(noise.get([0 as f64 / scale * 10.0, y as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let k = (x - 974) as f64 / 50.0;
+				((last * (1.0 - k) + first * k) * 255.0) as u8
+			} else if x < 974 {
+				let last =
+					(noise.get([x as f64 / scale * 10.0, 974 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let first =
+					(noise.get([x as f64 / scale * 10.0, 0 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let k = (y - 974) as f64 / 50.0;
+				((last * (1.0 - k) + first * k) * 255.0) as u8
+			} else {
+				let last =
+					(noise.get([974 as f64 / scale * 10.0, 974 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let first =
+					(noise.get([974 as f64 / scale * 10.0, 0 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let k = (y - 974) as f64 / 50.0;
+				let last_interpol = last * (1.0 - k) + first * k;
+				let last =
+					(noise.get([0 as f64 / scale * 10.0, 974 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let first =
+					(noise.get([0 as f64 / scale * 10.0, 0 as f64 / scale * 10.0]) + 1.0) / 2.0;
+				let k = (y - 974) as f64 / 50.0;
+				let first_interpol = last * (1.0 - k) + first * k;
+				let k = (x - 974) as f64 / 50.0;
+				((last_interpol * (1.0 - k) + first_interpol * k) * 255.0) as u8
+			}
+		}
+	}
+
 	fn foam_noise() -> [[u8; 3]; 1024 * 1024] {
 		let whorley = Worley::default()
 			.set_frequency(10.0)
-			// .enable_range(true)
-			// .set_range_function(RangeFunction::EuclideanSquared)
 			.set_seed(rand::random::<u32>());
 		let perlin_x = Perlin::default().set_seed(rand::random::<u32>());
 		let perlin_y = Perlin::default().set_seed(rand::random::<u32>());
@@ -92,20 +128,13 @@ impl Water {
 				let val_bot = (whorley.get([x as f64 / scale, y_nx as f64 / scale]) + 1.0) / 2.0;
 				let d_x = (val_l - val_r).abs();
 				let d_y = (val_top - val_bot).abs();
-				let noise_x = (((perlin_x
-					.get([x_pr as f64 / scale * 10.0, y as f64 / scale * 10.0])
-					+ 1.0) / 2.0) * 255.0) as u8;
-				let noise_y = (((perlin_y
-					.get([x_pr as f64 / scale * 10.0, y as f64 / scale * 10.0])
-					+ 1.0) / 2.0) * 255.0) as u8;
+				let noise_x = Water::interpolate_noise(x, y, scale, &perlin_x);
+				let noise_y = Water::interpolate_noise(x, y, scale, &perlin_y);
 				if d_x > 0.0 || d_y > 0.0 {
 					edge[(x + y * 1024) as usize] = [255, noise_x, noise_y];
 				} else {
 					edge[(x + y * 1024) as usize] = [0, noise_x, noise_y];
 				}
-				// let val =
-				// 	((whorley.get([x as f64 / scale, y as f64 / scale]) + 1.0) / 2.0 * 255.0) as u8;
-				// edge[(x + y * 1024) as usize] = [val, val, val];
 			}
 		}
 		return edge;
