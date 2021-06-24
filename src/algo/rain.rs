@@ -14,7 +14,6 @@ pub struct Rain {
 
 impl Rain {
 	const MAX_COUNT: usize = 500;
-	const DROPLET_PER_FRAME: usize = 3;
 
 	pub fn new(store: &EntityStore, water_id: u128) -> Self {
 		let rain_vert =
@@ -32,7 +31,8 @@ impl Rain {
 		if inputs.is_pressed(KeyCode::R) {
 			if let Some(ent_water) = store.get(self.water_id) {
 				if let Some(water) = ent_water.as_any().downcast_ref::<Water>() {
-					for _ in 0..Rain::DROPLET_PER_FRAME {
+					let strength = 3 + 2 * water.input_str();
+					for _ in 0..strength {
 						if self.droplets.len() < Rain::MAX_COUNT
 							&& water.get_avg_depth() < Water::MAX_HEIGHT
 						{

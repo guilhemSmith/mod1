@@ -21,6 +21,7 @@ pub struct Water {
 	pipes_y: Map<P_MAP_SIZE>,
 	pipes_x: Map<P_MAP_SIZE>,
 	avg_depth: f32,
+	input_str: u8,
 }
 
 impl Water {
@@ -49,6 +50,7 @@ impl Water {
 			pipes_y: [0.0; P_MAP_SIZE],
 			pipes_x: [0.0; P_MAP_SIZE],
 			avg_depth: 0.0,
+			input_str: 1,
 		}
 	}
 
@@ -149,7 +151,7 @@ impl Water {
 						let upwind_depth = f32::min(f32::max(depth, depth_next), 5.0);
 						return 1.0 * upwind_depth * G * height_delta * delta_time;
 					};
-				let flow_decceleration = f32::min(1.0 - delta_time * 0.05, 1.0);
+				let flow_decceleration = f32::min(1.0 - delta_time * 0.01, 1.0);
 
 				for i in 0..(DIM - 1) {
 					for j in 0..DIM {
@@ -446,9 +448,22 @@ impl Water {
 	}
 
 	fn handle_inputs(&mut self, inputs: &Inputs, store: &EntityStore) {
+		if self.input_str > 0
+			&& (inputs.is_just_pressed(KeyCode::Minus) || inputs.is_just_pressed(KeyCode::M))
+		{
+			self.input_str = self.input_str - 1;
+		}
+		if self.input_str < 2
+			&& (inputs.is_just_pressed(KeyCode::Plus)
+				|| inputs.is_just_pressed(KeyCode::Equals)
+				|| inputs.is_just_pressed(KeyCode::P))
+		{
+			self.input_str = self.input_str + 1;
+		}
+
 		if self.avg_depth < Water::MAX_HEIGHT && inputs.is_pressed(KeyCode::W) {
 			for i in 0..DIM {
-				self.depths[i] += 0.75 + self.avg_depth / 15.0;
+				self.depths[i] += 0.5 + self.input_str as f32 * 0.5;
 			}
 		}
 
@@ -460,7 +475,7 @@ impl Water {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
 								&& terrain.height_points()[i + j * DIM] >= -ZERO_DEPTH
 							{
-								self.depths[i + j * DIM] += 0.1;
+								self.depths[i + j * DIM] += 0.1 + 0.1 * self.input_str as f32;
 							}
 						}
 					}
@@ -472,7 +487,7 @@ impl Water {
 							if terrain.height_points()[i + j * DIM] <= ZERO_DEPTH
 								&& terrain.height_points()[i + j * DIM] >= -ZERO_DEPTH
 							{
-								self.depths[i + j * DIM] -= 0.1;
+								self.depths[i + j * DIM] -= 0.1 + 0.1 * self.input_str as f32;
 								if self.depths[i + j * DIM] <= ZERO_DEPTH {
 									self.depths[i + j * DIM] = 0.0;
 									if i < DIM - 1 && self.pipes_x[i + j * (DIM - 1)] < 0.0 {
@@ -511,6 +526,10 @@ impl Water {
 
 	pub fn get_avg_depth(&self) -> f32 {
 		self.avg_depth
+	}
+
+	pub fn input_str(&self) -> u8 {
+		self.input_str
 	}
 }
 
