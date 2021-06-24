@@ -50,7 +50,7 @@ impl Water {
 			pipes_y: [0.0; P_MAP_SIZE],
 			pipes_x: [0.0; P_MAP_SIZE],
 			avg_depth: 0.0,
-			input_str: 1,
+			input_str: 0,
 		}
 	}
 
