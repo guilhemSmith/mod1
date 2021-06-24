@@ -151,7 +151,7 @@ impl Water {
 						let upwind_depth = f32::min(f32::max(depth, depth_next), 5.0);
 						return 1.0 * upwind_depth * G * height_delta * delta_time;
 					};
-				let flow_decceleration = f32::min(1.0 - delta_time * 0.01, 1.0);
+				let flow_decceleration = f32::min(1.0 - delta_time * 0.05, 1.0);
 
 				for i in 0..(DIM - 1) {
 					for j in 0..DIM {
